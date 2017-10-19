@@ -9,7 +9,7 @@ body {
   color: #333333;
 }
 
-a:link {
+a, a:link {
   color: #40bbff;
 }
 
@@ -17,7 +17,7 @@ a:visited {
   color: #328aba;
 }
 
-a:hover {
+a:hover, a:focus {
   color: #7bd7fc;
 }
 
