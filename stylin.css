@@ -9,6 +9,22 @@ body {
   color: #333333;
 }
 
+a:link {
+  color: #40bbff;
+}
+
+a:visited {
+  color: #328aba;
+}
+
+a:hover {
+  color: #7bd7fc;
+}
+
+a:active {
+  color: #7bd7fc;
+}
+
 h1 {
   font-weight: bold;
   font-size: 48px;
