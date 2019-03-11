@@ -1,31 +1,42 @@
 /* Style page for Nolan Nicholson's website */
 
 body {
-  margin-left: 48px;
-  margin-right: 200px;
-  font-family: 'Merriweather', serif;
-  font-weight: normal;
-  font-size: 18px;
-  color: #333333;
+    margin-left: 100px;
+    margin-right: 100px;
+    font-family: 'Roboto Slab', serif;
+    font-weight: normal;
+    font-size: 18px;
+    color: #333333;
+}
+
+p {
+    align: center;
+    max-width: 800px;
 }
 
 a, a:link {
-  color: #40a8e8;
+    color: #40a8e8;
 }
 
 a:visited {
-  color: #604ae0;
+    color: #604ae0;
 }
 
 a:hover, a:focus {
-  color: #7bd7fc;
+    color: #7bd7fc;
 }
 
 a:active {
-  color: #fc571b;
+    color: #fc571b;
 }
 
 h1 {
-  font-weight: bold;
-  font-size: 48px;
+    font-weight: bold;
+    font-size: 48px;
+    margin-bottom: 0;
+}
+
+#headercanvas {
+    display:inline-block;
+    vertical-align: middle;
 }
