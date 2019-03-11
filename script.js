@@ -10,8 +10,12 @@ https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Tutorial/Creating_3D_
 
 main();
 
-// rotation (radians)
+// Rotation (radians)
 var cubeRotation = 0.0;
+// Rotation click and cooldown
+const clickSuperSpeed = 20.0;
+var rotationSpeed = 1.0;
+var rotationSlowdown = 0.97;
 
 function main() {
     //Grab canvas
@@ -23,6 +27,10 @@ function main() {
     if (gl == null) {
         console.error("Unable to initialize WebGL!");
         return;
+    }
+        
+    canvas.onmousedown = function(e) {
+        rotationSpeed = clickSuperSpeed;
     }
     
     //Vertex shader program
@@ -82,7 +90,9 @@ function main() {
         drawScene(gl, programInfo, buffers, deltaTime);
 
         //Update square angle
-        cubeRotation += deltaTime;
+        cubeRotation += deltaTime * rotationSpeed;
+        //Descend cube rotation closer to 1
+        rotationSpeed = rotationSpeed ** rotationSlowdown;
 
         requestAnimationFrame(render);
     }
@@ -259,7 +269,9 @@ function drawScene(gl, programInfo, buffers) {
         modelViewMatrix,            // matrix to rotate
         cubeRotation,               // amount to rotate - radians
         [0, 0, 1]);                 // axis to rotate around
-    mat4.rotate(modelViewMatrix, modelViewMatrix, cubeRotation*0.7, [0,1,0]);
+    mat4.rotate(modelViewMatrix, modelViewMatrix, 
+        cubeRotation * 0.7,
+        [0, 1, 0]);
 
     //Tell WebGL how to move data from position buffer
     //into the vertexPosition attribute
