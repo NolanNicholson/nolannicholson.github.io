@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<meta charset = "UTF-8">
+
+<html>
+  <head>
+    <link rel='stylesheet' type='text/css' href='https://fonts.googleapis.com/css?family=Roboto+Slab:400,700'>
+    <link rel='stylesheet' type='text/css' href='stylin.css'>
+    <title>Fullscreen App Test</title>
+  </head>
+  <body>
+    <h1 class='name'>
+        Nolan Nicholson
+        
+        <!--Code for adding a spinning cube to the header-->
+        <canvas id="headercanvas" width="64" height="64"></canvas>
+        <script src="scripts/libraries/gl-matrix.js"></script>
+        <script src="scripts/headercube.js"></script>
+        <!--end spinning cube code-->
+    </h1>
+
+    <p align="center">
+        <br>
+        <canvas id="maincanvas" width="640" height="480" style="object-fit: fill"></canvas>
+        <script src="scripts/fullscreen.js"></script>
+    </p>
+
+
+  </body>
+</html>

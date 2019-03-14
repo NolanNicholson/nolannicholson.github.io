@@ -23,7 +23,7 @@ function main() {
     //Initialize GL context
     const gl = canvas.getContext("webgl");
 
-    //Halt if WebGL is available and working
+    //Halt if WebGL is not working
     if (gl == null) {
         console.error("Unable to initialize WebGL!");
         return;
