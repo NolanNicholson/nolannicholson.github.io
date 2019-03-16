@@ -8,7 +8,7 @@ https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Tutorial/Creating_3D_
 
 */
 
-main();
+// Variables for the cube's movement
 
 // Rotation (radians)
 var cubeRotation = 0.0;
@@ -17,11 +17,13 @@ const clickSuperSpeed = 20.0;
 var rotationSpeed = 1.0;
 var rotationSlowdown = 0.97;
 
+main();
+
 function main() {
     //Grab canvas
-    const canvas = document.querySelector("#headercanvas");
+    const headerCubeCanvas = document.querySelector("#headercanvas");
     //Initialize GL context
-    const gl = canvas.getContext("webgl");
+    const gl = headerCubeCanvas.getContext("webgl");
 
     //Halt if WebGL is not working
     if (gl == null) {
@@ -29,7 +31,7 @@ function main() {
         return;
     }
         
-    canvas.onmousedown = function(e) {
+    headerCubeCanvas.onmousedown = function(e) {
         rotationSpeed = clickSuperSpeed;
     }
     
@@ -87,7 +89,7 @@ function main() {
         const deltaTime = now - then;
         then = now;
 
-        drawScene(gl, programInfo, buffers, deltaTime);
+        drawHeaderCube(gl, programInfo, buffers, deltaTime);
 
         //Update square angle
         cubeRotation += deltaTime * rotationSpeed;
@@ -241,7 +243,7 @@ function initBuffers(gl) {
 //
 //Draw the scene
 //
-function drawScene(gl, programInfo, buffers) {
+function drawHeaderCube(gl, programInfo, buffers) {
     //Set drawing parameters
     gl.clearColor(1.0, 1.0, 1.0, 1.0);
     gl.clearDepth(1.0);
