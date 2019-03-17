@@ -72,6 +72,9 @@ function main() {
 
     const buffers = initBuffers(gl);
 
+    //Load resources
+    loadResources();
+
     //Manage animation
     var then = 0;
 
@@ -85,6 +88,16 @@ function main() {
         requestAnimationFrame(render);
     }
     requestAnimationFrame(render);
+}
+
+function loadResources() {
+    //Load model
+    const koi_obj_iframe = document.getElementById("koi_obj");
+    koi_obj_iframe.onload = function() {
+        const koi_obj_string = getStringFromIFrameID("koi_obj");
+        const koi_model = loadOBJFromString(koi_obj_string);
+        console.log(koi_model);
+    }
 }
 
 //
