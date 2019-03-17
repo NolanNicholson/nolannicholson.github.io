@@ -74,11 +74,12 @@ function main() {
 
     //Load model
     const koi_obj_iframe = document.getElementById("koi_obj");
-    var koi_model;
 
-    koi_obj_iframe.onload = function() {
-        const koi_obj_string = getStringFromIFrameID("koi_obj");
-        koi_model = loadOBJFromString(koi_obj_string);
+    fetch("./koi.obj")
+    .then(response => response.text())
+    .then((koi_obj_string) => {
+
+        const koi_model = loadOBJFromString(koi_obj_string);
         console.log(koi_model);
 
         const buffers = initBuffers(gl, koi_model);
@@ -97,7 +98,7 @@ function main() {
         }
         requestAnimationFrame(render);
 
-    }
+    })
 }
 
 //

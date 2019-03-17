@@ -52,3 +52,15 @@ function getStringFromIFrameID(ID) {
     var string = frame.contentWindow.document.body.childNodes[0].innerHTML;
     return string;
 }
+
+//
+//Fetches a string using Fetch.
+//
+function getStringFromFetch(url) {
+    fetch(url)
+    .then(response => response.text())
+    .then((data) => {
+        console.log(data)
+        return data;
+    })
+}
