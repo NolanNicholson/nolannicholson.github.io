@@ -39,7 +39,7 @@ function loadOBJFromString(string) {
     }
     return {
         vertices: new Float32Array(vertices),
-        vertexCount: vertices.length / 6
+        vertexCount: vertices.length / 3
     };
 }
 

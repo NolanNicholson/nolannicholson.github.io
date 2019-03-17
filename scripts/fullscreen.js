@@ -37,7 +37,9 @@ function main() {
         varying lowp vec4 vColor;
 
         void main() {
-            gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
+            gl_Position = uProjectionMatrix * 
+                uModelViewMatrix * 
+                aVertexPosition;
             vColor = aVertexColor;
         }
     `;
@@ -70,33 +72,31 @@ function main() {
         },
     };
 
-    const buffers = initBuffers(gl);
-
-    //Load resources
-    loadResources();
-
-    //Manage animation
-    var then = 0;
-
-    function render(now) {
-        now *= 0.001; // convert to seconds
-        const deltaTime = now - then;
-        then = now;
-
-        drawScene(gl, programInfo, buffers, deltaTime);
-
-        requestAnimationFrame(render);
-    }
-    requestAnimationFrame(render);
-}
-
-function loadResources() {
     //Load model
     const koi_obj_iframe = document.getElementById("koi_obj");
+    var koi_model;
+
     koi_obj_iframe.onload = function() {
         const koi_obj_string = getStringFromIFrameID("koi_obj");
-        const koi_model = loadOBJFromString(koi_obj_string);
+        koi_model = loadOBJFromString(koi_obj_string);
         console.log(koi_model);
+
+        const buffers = initBuffers(gl, koi_model);
+
+        //Manage animation
+        var then = 0;
+
+        function render(now) {
+            now *= 0.001; // convert to seconds
+            const deltaTime = now - then;
+            then = now;
+
+            drawScene(gl, programInfo, buffers, deltaTime);
+
+            requestAnimationFrame(render);
+        }
+        requestAnimationFrame(render);
+
     }
 }
 
@@ -142,48 +142,12 @@ function loadShader(gl, type, source) {
 }
 
 //
-//Initializes buffers 
+//Initializes buffers for a model.
 //
-function initBuffers(gl) {
+function initBuffers(gl, model) {
 
     //Position buffer
-    const positions = [
-        // Front face
-        -1.0, -1.0,  1.0,
-         1.0, -1.0,  1.0,
-         1.0,  1.0,  1.0,
-        -1.0,  1.0,  1.0,
-
-        // Back face
-        -1.0, -1.0, -1.0,
-        -1.0,  1.0, -1.0,
-         1.0,  1.0, -1.0,
-         1.0, -1.0, -1.0,
-
-        // Top face
-        -1.0,  1.0, -1.0,
-        -1.0,  1.0,  1.0,
-         1.0,  1.0,  1.0,
-         1.0,  1.0, -1.0,
-
-        // Bottom face
-        -1.0, -1.0, -1.0,
-         1.0, -1.0, -1.0,
-         1.0, -1.0,  1.0,
-        -1.0, -1.0,  1.0,
-
-        // Right face
-         1.0, -1.0, -1.0,
-         1.0,  1.0, -1.0,
-         1.0,  1.0,  1.0,
-         1.0, -1.0,  1.0,
-
-        // Left face
-        -1.0, -1.0, -1.0,
-        -1.0, -1.0,  1.0,
-        -1.0,  1.0,  1.0,
-        -1.0,  1.0, -1.0,
-    ];
+    const positions = model.vertices;
     
     const positionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
@@ -192,22 +156,27 @@ function initBuffers(gl) {
         new Float32Array(positions),
         gl.STATIC_DRAW);
 
-    //Specify face colors
-    const faceColors = [
-        [0.2,  0.4,  1.0,  1.0],  // dark blue
-        [0.2,  0.4,  1.0,  1.0],  // dark blue
-        [0.2,  0.4,  1.0,  1.0],  // dark blue
-        [0.4,  0.6,  1.0,  1.0],  // pale blue
-        [0.4,  0.6,  1.0,  1.0],  // pale blue
-        [0.4,  0.6,  1.0,  1.0],  // pale blue
-    ]
-
     //Build up color array procedurally
     var colors = [];
+    const numFaces = model.vertexCount / 3;
 
-    for (var j = 0; j < faceColors.length; j++) {
-        const c = faceColors[j];
-        colors = colors.concat(c, c, c, c);
+    for (var j = 0; j < numFaces; j++) {
+
+        //Generate a random color for each face
+        var H = Math.random() * 6; // hue
+        var X = 1 - Math.abs((H % 2) - 1) // intermediate param
+
+        var R, G, B;
+
+        if      (H < 1) { R = 1; G = X; B = 0; }
+        else if (H < 2) { R = X; G = 1; B = 0; }
+        else if (H < 3) { R = 0; G = 1; B = X; }
+        else if (H < 4) { R = 0; G = X; B = 1; }
+        else if (H < 5) { R = X; G = 0; B = 1; }
+        else if (H < 6) { R = 1; G = 0; B = X; }
+
+        const c = [R, G, B, 1.0];
+        colors = colors.concat(c, c, c);
     }
 
     const colorBuffer = gl.createBuffer();
@@ -220,14 +189,10 @@ function initBuffers(gl) {
     const indexBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
 
-    const indices = [
-        0,  1,  2,      0,  2,  3,  //front
-        4,  5,  6,      4,  6,  7,  //back
-        8,  9,  10,     8,  10, 11, //top
-        12, 13, 14,     12, 14, 15, //bottom
-        16, 17, 18,     16, 18, 19, //right
-        20, 21, 22,     20, 22, 23, //left
-    ];
+    const indices = [];
+    for (var i = 0; i < model.vertexCount; i++) {
+        indices.push(i);
+    }
 
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,
         new Uint16Array(indices), gl.STATIC_DRAW);
@@ -236,6 +201,7 @@ function initBuffers(gl) {
         position: positionBuffer,
         color: colorBuffer,
         indices: indexBuffer,
+        vertexCount: model.vertexCount
     };
 }
 
@@ -282,7 +248,7 @@ function drawScene(gl, programInfo, buffers) {
     const modelViewMatrix = mat4.create();
 
     mat4.translate(modelViewMatrix, modelViewMatrix,
-        [-0.0, 0.0, -5.0]); //amount to translate
+        [-0.0, 0.0, -6.0]); //amount to translate
 
     mat4.rotate(modelViewMatrix,    // destination matrix
         modelViewMatrix,            // matrix to rotate
@@ -343,7 +309,7 @@ function drawScene(gl, programInfo, buffers) {
         modelViewMatrix);
 
     {
-        const vertexCount = 36;
+        const vertexCount = buffers.vertexCount;
         const type = gl.UNSIGNED_SHORT;
         const offset = 0;
         gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
