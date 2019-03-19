@@ -4,6 +4,11 @@ Configures a WebGL canvas so that it can run full-screen.
 
 */
 
+var swim_clock = 0; // internal clock for animation timing
+const wiggle_speed = 4; // frequency for sine function
+const wiggle_amplitude = 0.5; // amplitude of sine function
+var wiggle = 0; // will vary sinusoidally between 0 and 1
+
 main();
 
 function main() {
@@ -92,6 +97,9 @@ function main() {
             const deltaTime = now - then;
             then = now;
 
+            swim_clock += deltaTime;
+            wiggle = wiggle_amplitude * Math.sin(swim_clock * wiggle_speed)
+
             drawScene(gl, programInfo, buffers, deltaTime);
 
             requestAnimationFrame(render);
@@ -152,12 +160,11 @@ function initBuffers(gl, model) {
     
     const positionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-
     gl.bufferData(gl.ARRAY_BUFFER,
         new Float32Array(positions),
-        gl.STATIC_DRAW);
+        gl.DYNAMIC_DRAW);
 
-    //Build up color array procedurally
+    //Color buffer: Build up color array procedurally
     var colors = [];
     const numFaces = model.vertexCount / 3;
 
@@ -199,6 +206,7 @@ function initBuffers(gl, model) {
         new Uint16Array(indices), gl.STATIC_DRAW);
 
     return {
+        originalPositionData: positions,
         position: positionBuffer,
         color: colorBuffer,
         indices: indexBuffer,
@@ -229,7 +237,7 @@ function drawScene(gl, programInfo, buffers) {
     resize(gl);
 
     //Set drawing parameters
-    gl.clearColor(230/255, 225/255, 220/255, 1.0);
+    gl.clearColor(50/255, 40/255, 60/255, 1.0);
     gl.clearDepth(1.0);
     gl.enable(gl.DEPTH_TEST);
     gl.depthFunc(gl.LEQUAL);
@@ -248,19 +256,39 @@ function drawScene(gl, programInfo, buffers) {
     //Set drawing position to "identity" point - at center of scene
     const modelViewMatrix = mat4.create();
 
-    mat4.translate(modelViewMatrix, modelViewMatrix,
-        [-0.0, 0.0, -6.0]); //amount to translate
+    //Look at the origin from above and to the side
+    mat4.lookAt(modelViewMatrix,    // destination matrix
+        [0.0, 8.0, -6.0],           // eye - position of viewer 
+        [0.0, 0.0, 0.0],            // center - position being looked at
+        [0.0, 1.0, 1.0],            // up - which way is up
+    );
 
+    //Rotate slowly (using cubeRotation so that the cube can agitate it)
     mat4.rotate(modelViewMatrix,    // destination matrix
         modelViewMatrix,            // matrix to rotate
-        cubeRotation * 0.2,         // amount to rotate - radians
-        [0, 0, 0]                   // axis to rotate around
+        cubeRotation * 0.3,         // amount to rotate - radians
+        [0, 1, 0]                   // axis to rotate around
     );
-    /*
-    mat4.rotate(modelViewMatrix, modelViewMatrix, 
-        cubeRotation * 0.14,
-        [0, 1, 0]);
-    */
+
+    //Animation process:
+    //Deform the contents of the Position buffer to animate the fish
+    deformedPositions = new Float32Array(buffers.originalPositionData);
+    
+    for (i = 0; i < buffers.vertexCount; i++) {
+        const x = deformedPositions[3*i];
+        const y = deformedPositions[3*i + 1];
+        const z = deformedPositions[3*i + 2];
+
+        //move left and right
+        deformedPositions[3*i] += wiggle;
+
+        //deform left and right according to position
+        deformedPositions[3*i] -= wiggle * (z*z/10)
+    }
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
+    gl.bufferSubData(gl.ARRAY_BUFFER, 0, deformedPositions);
+
 
     //Tell WebGL how to move data from position buffer
     //into the vertexPosition attribute
