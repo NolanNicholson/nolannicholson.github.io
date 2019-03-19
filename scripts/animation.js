@@ -154,6 +154,27 @@ function loadShader(gl, type, source) {
 }
 
 //
+//Converts a hue value H (bounded 0 to 6) to an RGBA array.
+//Based on Wikipedia's descript of HSL->RGB conversion,
+//with S and L equal to 1 (for fully saturated pretty colors)
+///
+function getSaturatedRGBA(H) {
+    var X = 1 - Math.abs((H % 2) - 1) // intermediate param
+
+    var R, G, B;
+
+    if      (H < 1) { R = 1; G = X; B = 0; }
+    else if (H < 2) { R = X; G = 1; B = 0; }
+    else if (H < 3) { R = 0; G = 1; B = X; }
+    else if (H < 4) { R = 0; G = X; B = 1; }
+    else if (H < 5) { R = X; G = 0; B = 1; }
+    else if (H < 6) { R = 1; G = 0; B = X; }
+
+    const c = [R, G, B, 1.0]; // alpha set to 1
+    return c;
+}
+
+//
 //Initializes buffers for a model.
 //
 function initBuffers(gl, model) {
@@ -175,18 +196,8 @@ function initBuffers(gl, model) {
 
         //Generate a random color for each face
         var H = Math.random() * 6; // hue
-        var X = 1 - Math.abs((H % 2) - 1) // intermediate param
-
-        var R, G, B;
-
-        if      (H < 1) { R = 1; G = X; B = 0; }
-        else if (H < 2) { R = X; G = 1; B = 0; }
-        else if (H < 3) { R = 0; G = 1; B = X; }
-        else if (H < 4) { R = 0; G = X; B = 1; }
-        else if (H < 5) { R = X; G = 0; B = 1; }
-        else if (H < 6) { R = 1; G = 0; B = X; }
-
-        const c = [R, G, B, 1.0];
+        const c = getSaturatedRGBA(H);
+        //Color must be duplicated for each of 3 vertices on face
         colors = colors.concat(c, c, c);
     }
 
@@ -194,7 +205,7 @@ function initBuffers(gl, model) {
     gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
     gl.bufferData(gl.ARRAY_BUFFER,
         new Float32Array(colors),
-        gl.STATIC_DRAW);
+        gl.DYNAMIC_DRAW);
 
     //Index buffer
     const indexBuffer = gl.createBuffer();
@@ -262,7 +273,7 @@ function drawScene(gl, programInfo, buffers) {
     //Look at the origin from above and to the side
     mat4.lookAt(modelViewMatrix,    // destination matrix
         [0.0, 6.0, -6.0],           // eye - position of viewer 
-        [0.0, 0.0, 0.0],            // center - position being looked at
+        [0.0, 0.0, -0.5],            // center - position being looked at
         [0.0, 1.0, 1.0],            // up - which way is up
     );
 
@@ -273,12 +284,12 @@ function drawScene(gl, programInfo, buffers) {
         [0, 1, 0]                   // axis to rotate around
     );
 
-    //Animation process
+    //Animation: Deform positions of model vertices.
+
     //Update input params to animation ("wiggle")
     wiggle = wiggle_amplitude * Math.sin(swim_clock * wiggle_speed)
     wiggle2 = wiggle2_amplitude * Math.sin(
         (swim_clock * wiggle_speed) + wiggle_phase);
-
 
     //Deform the contents of the Position buffer to animate the fish
     deformedPositions = new Float32Array(buffers.originalPositionData);
@@ -298,6 +309,32 @@ function drawScene(gl, programInfo, buffers) {
     gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
     gl.bufferSubData(gl.ARRAY_BUFFER, 0, deformedPositions);
 
+    //Animation: Update vertex colors.
+
+    colors = []
+    
+    //Iterate over faces (3 vertices per face)
+    for (i = 0; i < buffers.vertexCount / 3; i++) {
+        //Get intermediate z coordinate of associated textures
+        const z1 = deformedPositions[9*i+0+2];
+        const z2 = deformedPositions[9*i+3+2];
+        const z3 = deformedPositions[9*i+6+2];
+        const z  = (Math.max(z1, z2, z3) + Math.min(z1, z2, z3)) / 2;
+
+        const y1 = deformedPositions[9*i+0+1];
+        const y2 = deformedPositions[9*i+3+1];
+        const y3 = deformedPositions[9*i+6+1];
+        const y  = (Math.max(y1, y2, y3) + Math.min(y1, y2, y3)) / 2;
+        
+        //Assign hue based on z coordinate and animation time
+        const hue = ((z + 1) * 0.4 + (y * 0.5) + (swim_clock * 2)) % 6;
+        const c = getSaturatedRGBA(hue);
+        colors = colors.concat(c, c, c);
+    }
+
+    //Update color buffer
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.color);
+    gl.bufferSubData(gl.ARRAY_BUFFER, 0, new Float32Array(colors));
 
     //Tell WebGL how to move data from position buffer
     //into the vertexPosition attribute
