@@ -1,13 +1,17 @@
 /*
 
-Configures a WebGL canvas so that it can run full-screen.
+Animation of a colorful fish swimming.
 
 */
 
 var swim_clock = 0; // internal clock for animation timing
 const wiggle_speed = 4; // frequency for sine function
-const wiggle_amplitude = 0.5; // amplitude of sine function
+const wiggle_amplitude = 0.4; // amplitude of distortion sine function
+const wiggle2_amplitude = 0.2; // amplitude of movement sine function
+const wiggle_phase = 5.5; // phase between curve distortion and movement
+const wiggle_zcenter = 1.0; // Z reference point for wiggle
 var wiggle = 0; // will vary sinusoidally between 0 and 1
+var wiggle2 = 0; // slightly out of phase with wiggle
 
 main();
 
@@ -98,7 +102,6 @@ function main() {
             then = now;
 
             swim_clock += deltaTime;
-            wiggle = wiggle_amplitude * Math.sin(swim_clock * wiggle_speed)
 
             drawScene(gl, programInfo, buffers, deltaTime);
 
@@ -258,7 +261,7 @@ function drawScene(gl, programInfo, buffers) {
 
     //Look at the origin from above and to the side
     mat4.lookAt(modelViewMatrix,    // destination matrix
-        [0.0, 8.0, -6.0],           // eye - position of viewer 
+        [0.0, 6.0, -6.0],           // eye - position of viewer 
         [0.0, 0.0, 0.0],            // center - position being looked at
         [0.0, 1.0, 1.0],            // up - which way is up
     );
@@ -270,17 +273,23 @@ function drawScene(gl, programInfo, buffers) {
         [0, 1, 0]                   // axis to rotate around
     );
 
-    //Animation process:
+    //Animation process
+    //Update input params to animation ("wiggle")
+    wiggle = wiggle_amplitude * Math.sin(swim_clock * wiggle_speed)
+    wiggle2 = wiggle2_amplitude * Math.sin(
+        (swim_clock * wiggle_speed) + wiggle_phase);
+
+
     //Deform the contents of the Position buffer to animate the fish
     deformedPositions = new Float32Array(buffers.originalPositionData);
     
     for (i = 0; i < buffers.vertexCount; i++) {
         const x = deformedPositions[3*i];
         const y = deformedPositions[3*i + 1];
-        const z = deformedPositions[3*i + 2];
+        const z = deformedPositions[3*i + 2] - wiggle_zcenter;
 
         //move left and right
-        deformedPositions[3*i] += wiggle;
+        deformedPositions[3*i] += wiggle2;
 
         //deform left and right according to position
         deformedPositions[3*i] -= wiggle * (z*z/10)
