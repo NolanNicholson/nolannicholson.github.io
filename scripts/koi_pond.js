@@ -40,14 +40,16 @@ function main() {
         attribute vec4 aVertexPosition;
         attribute vec4 aVertexColor;
 
-        uniform mat4 uModelViewMatrix;
+        uniform mat4 uModelMatrix;
+        uniform mat4 uViewMatrix;
         uniform mat4 uProjectionMatrix;
 
         varying lowp vec4 vColor;
 
         void main() {
             gl_Position = uProjectionMatrix * 
-                uModelViewMatrix * 
+                uViewMatrix * 
+                uModelMatrix *
                 aVertexPosition;
             vColor = aVertexColor;
         }
@@ -76,8 +78,10 @@ function main() {
         uniformLocations: {
             projectionMatrix: gl.getUniformLocation(
                 shaderProgram, 'uProjectionMatrix'),
-            modelViewMatrix: gl.getUniformLocation(
-                shaderProgram, 'uModelViewMatrix'),
+            viewMatrix: gl.getUniformLocation(
+                shaderProgram, 'uViewMatrix'),
+            modelMatrix: gl.getUniformLocation(
+                shaderProgram, 'uModelMatrix'),
         },
     };
 
@@ -159,7 +163,8 @@ function loadShader(gl, type, source) {
 //with S and L equal to 1 (for fully saturated pretty colors)
 ///
 function getSaturatedRGBA(H) {
-    var X = 1 - Math.abs((H % 2) - 1) // intermediate param
+    H = H % 6;
+    var X = 1 - Math.abs((H % 2) - 1); // intermediate param
 
     var R, G, B;
 
@@ -192,10 +197,13 @@ function initBuffers(gl, model) {
     var colors = [];
     const numFaces = model.vertexCount / 3;
 
+    //"Central" hue
+    const mainHue = Math.random() * 6;
+
     for (var j = 0; j < numFaces; j++) {
 
         //Generate a random color for each face
-        var H = Math.random() * 6; // hue
+        var H = mainHue + (Math.random() - 0.5) * 0.5; // hue
         const c = getSaturatedRGBA(H);
         //Color must be duplicated for each of 3 vertices on face
         colors = colors.concat(c, c, c);
@@ -268,18 +276,19 @@ function drawScene(gl, programInfo, buffers) {
     mat4.perspective(projectionMatrix, fieldOfView, aspect, zNear, zFar);
 
     //Set drawing position to "identity" point - at center of scene
-    const modelViewMatrix = mat4.create();
+    const modelMatrix = mat4.create();
+    const viewMatrix = mat4.create();
 
     //Look at the origin from above and to the side
-    mat4.lookAt(modelViewMatrix,    // destination matrix
+    mat4.lookAt(viewMatrix,    // destination matrix
         [0.0, 6.0, -6.0],           // eye - position of viewer 
         [0.0, 0.0, -0.5],            // center - position being looked at
         [0.0, 1.0, 1.0],            // up - which way is up
     );
 
     //Rotate slowly (using cubeRotation so that the cube can agitate it)
-    mat4.rotate(modelViewMatrix,    // destination matrix
-        modelViewMatrix,            // matrix to rotate
+    mat4.rotate(modelMatrix,    // destination matrix
+        modelMatrix,            // matrix to rotate
         cubeRotation * 0.3,         // amount to rotate - radians
         [0, 1, 0]                   // axis to rotate around
     );
@@ -308,33 +317,6 @@ function drawScene(gl, programInfo, buffers) {
 
     gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
     gl.bufferSubData(gl.ARRAY_BUFFER, 0, deformedPositions);
-
-    //Animation: Update vertex colors.
-
-    colors = []
-    
-    //Iterate over faces (3 vertices per face)
-    for (i = 0; i < buffers.vertexCount / 3; i++) {
-        //Get intermediate z coordinate of associated textures
-        const z1 = deformedPositions[9*i+0+2];
-        const z2 = deformedPositions[9*i+3+2];
-        const z3 = deformedPositions[9*i+6+2];
-        const z  = (Math.max(z1, z2, z3) + Math.min(z1, z2, z3)) / 2;
-
-        const y1 = deformedPositions[9*i+0+1];
-        const y2 = deformedPositions[9*i+3+1];
-        const y3 = deformedPositions[9*i+6+1];
-        const y  = (Math.max(y1, y2, y3) + Math.min(y1, y2, y3)) / 2;
-        
-        //Assign hue based on z coordinate and animation time
-        const hue = ((z + 1) * 0.4 + (y * 0.5) + (swim_clock * 2)) % 6;
-        const c = getSaturatedRGBA(hue);
-        colors = colors.concat(c, c, c);
-    }
-
-    //Update color buffer
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.color);
-    gl.bufferSubData(gl.ARRAY_BUFFER, 0, new Float32Array(colors));
 
     //Tell WebGL how to move data from position buffer
     //into the vertexPosition attribute
@@ -382,9 +364,13 @@ function drawScene(gl, programInfo, buffers) {
         false,
         projectionMatrix);
     gl.uniformMatrix4fv(
-        programInfo.uniformLocations.modelViewMatrix,
+        programInfo.uniformLocations.viewMatrix,
         false,
-        modelViewMatrix);
+        viewMatrix);
+    gl.uniformMatrix4fv(
+        programInfo.uniformLocations.modelMatrix,
+        false,
+        modelMatrix);
 
     {
         const vertexCount = buffers.vertexCount;
