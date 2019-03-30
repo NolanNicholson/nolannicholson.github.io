@@ -1,8 +1,11 @@
 /*
 
-Animation of a colorful fish swimming.
+Animation of colorful fish swimming.
 
 */
+
+//TODO make a 'fish' object that contains buffers, matrices, etc.
+//TODO have two fish on screen at once
 
 var swim_clock = 0; // internal clock for animation timing
 const wiggle_speed = 4; // frequency for sine function
@@ -205,6 +208,12 @@ function initBuffers(gl, model) {
         //Generate a random color for each face
         var H = mainHue + (Math.random() - 0.5) * 0.5; // hue
         const c = getSaturatedRGBA(H);
+
+        //Darken color according to y coord
+        var y_avg = (positions[9*j + 1] + positions[9*j + 4] + positions[9*j + 7]) / 3;
+        for (var i = 0; i < 3; i++) {
+            c[i] += y_avg / 2;
+        }
         //Color must be duplicated for each of 3 vertices on face
         colors = colors.concat(c, c, c);
     }
