@@ -14,7 +14,7 @@ https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Tutorial/Creating_3D_
 var cubeRotation = 0.0;
 // Rotation click and cooldown
 const clickSuperSpeed = 20.0;
-var rotationSpeed = 1.0;
+var cubeRotationSpeed = 1.0;
 var rotationSlowdown = 0.97;
 
 main();
@@ -32,7 +32,7 @@ function main() {
     }
         
     headerCubeCanvas.onmousedown = function(e) {
-        rotationSpeed = clickSuperSpeed;
+        cubeRotationSpeed = clickSuperSpeed;
     }
     
     //Vertex shader program
@@ -92,9 +92,9 @@ function main() {
         drawHeaderCube(gl, programInfo, buffers, deltaTime);
 
         //Update square angle
-        cubeRotation += deltaTime * rotationSpeed;
+        cubeRotation += deltaTime * cubeRotationSpeed;
         //Descend cube rotation closer to 1
-        rotationSpeed = rotationSpeed ** rotationSlowdown;
+        cubeRotationSpeed = cubeRotationSpeed ** rotationSlowdown;
 
         requestAnimationFrame(render);
     }

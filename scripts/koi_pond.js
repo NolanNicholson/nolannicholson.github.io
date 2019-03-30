@@ -17,8 +17,56 @@ var wiggle = 0; // will vary sinusoidally between 0 and 1
 var wiggle2 = 0; // slightly out of phase with wiggle
 
 class Fish {
-    constructor() {
-        this.loc = [0.0, 0.0, 0.0];
+    //
+    // Constructor: initialize variables, set up color buffer
+    //
+    constructor(gl) {
+        this.loc = [
+            (Math.random() - 0.5) * 4,
+            0.0,
+            (Math.random() - 0.5) * 4,
+        ];
+        this.swimAngle = Math.random() * Math.PI * 2 // radians;
+
+        this.colorBuffer = gl.createBuffer();
+    }
+
+    //
+    // Initialize and assign color buffer (random color for each face)
+    //
+    initColorBuffer(gl, modelBuffers) {
+        
+        //Get info from model
+        const numFaces = modelBuffers.vertexCount / 3;
+        let positions = modelBuffers.originalPositionData;
+
+        //"Central" hue
+        const mainHue = Math.random() * 6;
+
+        //Generate colors 
+        var colors = [];
+        for (var j = 0; j < numFaces; j++) {
+
+            //Generate a random color for each face
+            var H = mainHue + (Math.random() - 0.5) * 0.5; // hue
+            const c = getSaturatedRGBA(H);
+
+            //Darken color according to y coord
+            var y_avg = (positions[9*j + 1] + positions[9*j + 4] + positions[9*j + 7]) / 3;
+            for (var i = 0; i < 3; i++) {
+                c[i] += y_avg / 2;
+            }
+            //Color must be duplicated for each of 3 vertices on face
+            colors = colors.concat(c, c, c);
+        }
+
+        //Send colors to the fish's color buffer
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.colorBuffer);
+        console.log("2");
+        gl.bufferData(gl.ARRAY_BUFFER,
+            new Float32Array(colors),
+            gl.DYNAMIC_DRAW);
+
     }
 }
 
@@ -95,7 +143,7 @@ function main() {
     };
 
     //Initialize objects
-    let fishes = [new Fish(), new Fish()];
+    let fishes = [new Fish(gl), new Fish(gl), new Fish(gl)];
 
     //Load model
     const koi_obj_iframe = document.getElementById("koi_obj");
@@ -107,7 +155,14 @@ function main() {
         const koi_model = loadOBJFromString(koi_obj_string);
         console.log(koi_model);
 
+        //Initialize buffers
+        //Global model buffers: position, indices
         const buffers = initBuffers(gl, koi_model);
+        //Object-specific buffers: color
+        for (i = 0; i < fishes.length; i++) {
+            let fish = fishes[i];
+            fish.initColorBuffer(gl, buffers);
+        }
 
         //Manage animation
         var then = 0;
@@ -204,35 +259,7 @@ function initBuffers(gl, model) {
     gl.bufferData(gl.ARRAY_BUFFER,
         new Float32Array(positions),
         gl.DYNAMIC_DRAW);
-
-    //Color buffer: Build up color array procedurally
-    var colors = [];
-    const numFaces = model.vertexCount / 3;
-
-    //"Central" hue
-    const mainHue = Math.random() * 6;
-
-    for (var j = 0; j < numFaces; j++) {
-
-        //Generate a random color for each face
-        var H = mainHue + (Math.random() - 0.5) * 0.5; // hue
-        const c = getSaturatedRGBA(H);
-
-        //Darken color according to y coord
-        var y_avg = (positions[9*j + 1] + positions[9*j + 4] + positions[9*j + 7]) / 3;
-        for (var i = 0; i < 3; i++) {
-            c[i] += y_avg / 2;
-        }
-        //Color must be duplicated for each of 3 vertices on face
-        colors = colors.concat(c, c, c);
-    }
-
-    const colorBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER,
-        new Float32Array(colors),
-        gl.DYNAMIC_DRAW);
-
+ 
     //Index buffer
     const indexBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
@@ -244,11 +271,10 @@ function initBuffers(gl, model) {
 
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,
         new Uint16Array(indices), gl.STATIC_DRAW);
-
-    return {
+    
+   return {
         originalPositionData: positions,
         position: positionBuffer,
-        color: colorBuffer,
         indices: indexBuffer,
         vertexCount: model.vertexCount
     };
@@ -274,13 +300,15 @@ function resize(gl) {
 function drawScene(gl, fishes, programInfo, buffers) {
     
     // Updating logic
-    let fish = fishes[0];
-    const swim_speed = 0.05;
-    // Update rotation (using cubeRotation so that the cube can agitate it)
-    rotationAngle = cubeRotation * 0.3;
-    fish.loc[0] += Math.sin(rotationAngle) * swim_speed;
-    fish.loc[2] += Math.cos(rotationAngle) * swim_speed;
-    
+    for (var i = 0; i < fishes.length; i++) {
+        let fish = fishes[i];
+        const swim_speed = 0.05;
+        // Update rotation (using cubeRotation so that the cube can agitate it)
+        fish.swimAngle += cubeRotationSpeed * 0.005;
+        fish.loc[0] += Math.sin(fish.swimAngle) * swim_speed;
+        fish.loc[2] += Math.cos(fish.swimAngle) * swim_speed;
+    }
+        
     // Rendering
     //Update canvas size if needed
     resize(gl);
@@ -294,7 +322,11 @@ function drawScene(gl, fishes, programInfo, buffers) {
     //Clear canvas
     gl.clear(gl.COLOR_BUFFER_BIT, gl.DEPTH_BUFFER_BIT);
 
-    drawFish(gl, fish, programInfo, buffers);
+    //Draw each fish
+    for (var i = 0; i < fishes.length; i++) {
+        let fish = fishes[i];
+        drawFish(gl, fish, programInfo, buffers);
+    }
 }
 
 //
@@ -322,7 +354,7 @@ function drawFish(gl, fish, programInfo, buffers) {
     //Rotate model 
     mat4.rotate(modelMatrix,    // destination matrix
         modelMatrix,            // matrix to rotate
-        rotationAngle,          // amount to rotate - radians
+        fish.swimAngle,         // amount to rotate - radians
         [0, 1, 0]               // axis to rotate around
     );
 
@@ -384,7 +416,7 @@ function drawFish(gl, fish, programInfo, buffers) {
         const stride = 0;
         const offset = 0;
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, buffers.color);
+        gl.bindBuffer(gl.ARRAY_BUFFER, fish.colorBuffer);
         gl.vertexAttribPointer(
             programInfo.attribLocations.vertexColor,
             numComponents, type, normalize, stride, offset);
