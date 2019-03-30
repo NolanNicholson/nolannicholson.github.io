@@ -11,24 +11,36 @@ var swim_clock = 0; // internal clock for animation timing
 const wiggle_speed = 4; // frequency for sine function
 const wiggle_amplitude = 0.4; // amplitude of distortion sine function
 const wiggle2_amplitude = 0.2; // amplitude of movement sine function
+/*
 const wiggle_phase = 5.5; // phase between curve distortion and movement
 const wiggle_zcenter = 1.0; // Z reference point for wiggle
 var wiggle = 0; // will vary sinusoidally between 0 and 1
 var wiggle2 = 0; // slightly out of phase with wiggle
+*/
 
 class Fish {
     //
     // Constructor: initialize variables, set up color buffer
     //
     constructor(gl) {
+        //Location and swim angle
         this.loc = [
-            (Math.random() - 0.5) * 4,
+            (Math.random() - 0.5) * 8,
             0.0,
-            (Math.random() - 0.5) * 4,
+            (Math.random() - 0.5) * 8,
         ];
         this.swimAngle = Math.random() * Math.PI * 2 // radians;
 
+        //"Wiggle" animation parameters - will vary sinusoidally from 0-1
+        this.wiggleShift = 0; 
+        this.wiggleDeform = 0;
+        this.wiggleZCenter = 0; // Z reference point for wiggle
+        this.wiggleTimingPhase = Math.random() * Math.PI * 2; // phase to make the fish different
+        this.wiggleDeformPhase = 5.5; // phase between curve distortion and movement
+
+        //Buffers
         this.colorBuffer = gl.createBuffer();
+        this.positionBuffer = gl.createBuffer();
     }
 
     //
@@ -67,6 +79,62 @@ class Fish {
             new Float32Array(colors),
             gl.DYNAMIC_DRAW);
 
+    }
+
+    //
+    // Initialize and assign position buffer
+    // TODO: implement fully and use!
+    //
+    initPositionBuffer(gl, modelBuffers) {
+        //Position buffer
+        const positions = modelBuffers.originalPositionData;
+        
+        const positionBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER,
+            new Float32Array(positions),
+            gl.DYNAMIC_DRAW);
+    }
+
+    //
+    // Update "game" logic and animation parameters
+    //
+    update() {
+        const swim_speed = 0.05;
+        // Update rotation (using cubeRotation so that the cube can agitate it)
+        this.swimAngle += cubeRotationSpeed * 0.005;
+        this.loc[0] += Math.sin(this.swimAngle) * swim_speed;
+        this.loc[2] += Math.cos(this.swimAngle) * swim_speed;
+
+        //Update input params to animation ("wiggle")
+        this.wiggleDeform = wiggle_amplitude * Math.sin(
+            (swim_clock * wiggle_speed) + this.wiggleTimingPhase);
+        this.wiggleShift = wiggle2_amplitude * Math.sin(
+            (swim_clock * wiggle_speed) + this.wiggleTimingPhase + this.wiggleDeformPhase);
+    }
+
+    //
+    // Update position buffer by deforming original model data
+    // (results in animation of the fish)
+    //
+    updatePositionBuffer(gl, modelBuffers) {
+        //Deform the contents of the Position buffer to animate the fish
+        let deformedPositions = new Float32Array(modelBuffers.originalPositionData);
+        
+        for (i = 0; i < modelBuffers.vertexCount; i++) {
+            const x = deformedPositions[3*i];
+            const y = deformedPositions[3*i + 1];
+            const z = deformedPositions[3*i + 2] - this.wiggleZCenter;
+
+            //move left and right
+            deformedPositions[3*i] += this.wiggleShift;
+
+            //deform left and right according to position
+            deformedPositions[3*i] -= this.wiggleDeform * (z*z/10)
+        }
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
+        gl.bufferSubData(gl.ARRAY_BUFFER, 0, deformedPositions);
     }
 }
 
@@ -162,6 +230,7 @@ function main() {
         for (i = 0; i < fishes.length; i++) {
             let fish = fishes[i];
             fish.initColorBuffer(gl, buffers);
+            fish.initPositionBuffer(gl, buffers);
         }
 
         //Manage animation
@@ -302,11 +371,7 @@ function drawScene(gl, fishes, programInfo, buffers) {
     // Updating logic
     for (var i = 0; i < fishes.length; i++) {
         let fish = fishes[i];
-        const swim_speed = 0.05;
-        // Update rotation (using cubeRotation so that the cube can agitate it)
-        fish.swimAngle += cubeRotationSpeed * 0.005;
-        fish.loc[0] += Math.sin(fish.swimAngle) * swim_speed;
-        fish.loc[2] += Math.cos(fish.swimAngle) * swim_speed;
+        fish.update();
     }
         
     // Rendering
@@ -366,29 +431,7 @@ function drawFish(gl, fish, programInfo, buffers) {
     );
 
     //Animation: Deform positions of model vertices.
-
-    //Update input params to animation ("wiggle")
-    wiggle = wiggle_amplitude * Math.sin(swim_clock * wiggle_speed)
-    wiggle2 = wiggle2_amplitude * Math.sin(
-        (swim_clock * wiggle_speed) + wiggle_phase);
-
-    //Deform the contents of the Position buffer to animate the fish
-    deformedPositions = new Float32Array(buffers.originalPositionData);
-    
-    for (i = 0; i < buffers.vertexCount; i++) {
-        const x = deformedPositions[3*i];
-        const y = deformedPositions[3*i + 1];
-        const z = deformedPositions[3*i + 2] - wiggle_zcenter;
-
-        //move left and right
-        deformedPositions[3*i] += wiggle2;
-
-        //deform left and right according to position
-        deformedPositions[3*i] -= wiggle * (z*z/10)
-    }
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
-    gl.bufferSubData(gl.ARRAY_BUFFER, 0, deformedPositions);
+    fish.updatePositionBuffer(gl, buffers);
 
     //Tell WebGL how to move data from position buffer
     //into the vertexPosition attribute
@@ -399,7 +442,7 @@ function drawFish(gl, fish, programInfo, buffers) {
         const stride = 0;
         const offset = 0;
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
+        gl.bindBuffer(gl.ARRAY_BUFFER, fish.positionBuffer);
         gl.vertexAttribPointer(
             programInfo.attribLocations.vertexPosition,
             numComponents, type, normalize, stride, offset);
