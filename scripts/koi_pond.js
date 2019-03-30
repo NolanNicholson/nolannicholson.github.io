@@ -16,6 +16,12 @@ const wiggle_zcenter = 1.0; // Z reference point for wiggle
 var wiggle = 0; // will vary sinusoidally between 0 and 1
 var wiggle2 = 0; // slightly out of phase with wiggle
 
+class Fish {
+    constructor() {
+        this.loc = [0.0, 0.0, 0.0];
+    }
+}
+
 main();
 
 function main() {
@@ -88,6 +94,9 @@ function main() {
         },
     };
 
+    //Initialize objects
+    let fishes = [new Fish(), new Fish()];
+
     //Load model
     const koi_obj_iframe = document.getElementById("koi_obj");
 
@@ -110,7 +119,7 @@ function main() {
 
             swim_clock += deltaTime;
 
-            drawScene(gl, programInfo, buffers, deltaTime);
+            drawScene(gl, fishes, programInfo, buffers, deltaTime);
 
             requestAnimationFrame(render);
         }
@@ -262,8 +271,17 @@ function resize(gl) {
 //
 //Draw the scene
 //
-function drawScene(gl, programInfo, buffers) {
+function drawScene(gl, fishes, programInfo, buffers) {
     
+    // Updating logic
+    let fish = fishes[0];
+    const swim_speed = 0.05;
+    // Update rotation (using cubeRotation so that the cube can agitate it)
+    rotationAngle = cubeRotation * 0.3;
+    fish.loc[0] += Math.sin(rotationAngle) * swim_speed;
+    fish.loc[2] += Math.cos(rotationAngle) * swim_speed;
+    
+    // Rendering
     //Update canvas size if needed
     resize(gl);
 
@@ -276,6 +294,13 @@ function drawScene(gl, programInfo, buffers) {
     //Clear canvas
     gl.clear(gl.COLOR_BUFFER_BIT, gl.DEPTH_BUFFER_BIT);
 
+    drawFish(gl, fish, programInfo, buffers);
+}
+
+//
+//Draws an individual fish.
+//
+function drawFish(gl, fish, programInfo, buffers) {
     //Construct perspective matrix
     const fieldOfView = 45 * Math.PI / 180; //radians
     const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
@@ -288,18 +313,24 @@ function drawScene(gl, programInfo, buffers) {
     const modelMatrix = mat4.create();
     const viewMatrix = mat4.create();
 
-    //Look at the origin from above and to the side
-    mat4.lookAt(viewMatrix,    // destination matrix
-        [0.0, 6.0, -6.0],           // eye - position of viewer 
-        [0.0, 0.0, -0.5],            // center - position being looked at
-        [0.0, 1.0, 1.0],            // up - which way is up
+    //Move model according to its position
+    mat4.translate(modelMatrix, // destination matrix
+        modelMatrix,            // starting matrix
+        fish.loc                // translation vector
     );
 
-    //Rotate slowly (using cubeRotation so that the cube can agitate it)
+    //Rotate model 
     mat4.rotate(modelMatrix,    // destination matrix
         modelMatrix,            // matrix to rotate
-        cubeRotation * 0.3,         // amount to rotate - radians
-        [0, 1, 0]                   // axis to rotate around
+        rotationAngle,          // amount to rotate - radians
+        [0, 1, 0]               // axis to rotate around
+    );
+
+    //Look at the origin from above and to the side
+    mat4.lookAt(viewMatrix,     // destination matrix
+        [0.0, 12.0, -12.0],     // eye - position of viewer 
+        [0.0, 0.0, 0.0],        // center - position being looked at
+        [0.0, 1.0, 1.0],        // up - which way is up
     );
 
     //Animation: Deform positions of model vertices.
@@ -387,5 +418,4 @@ function drawScene(gl, programInfo, buffers) {
         const offset = 0;
         gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
     }
-}
-
+};
