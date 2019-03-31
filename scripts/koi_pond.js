@@ -79,7 +79,6 @@ class Fish {
 
         //Send colors to the fish's color buffer
         gl.bindBuffer(gl.ARRAY_BUFFER, this.colorBuffer);
-        console.log("2");
         gl.bufferData(gl.ARRAY_BUFFER,
             new Float32Array(colors),
             gl.DYNAMIC_DRAW);
@@ -126,10 +125,6 @@ class Fish {
         }
 
         this.swimAngle += 0.3 * deltaTime * angleDelta;
-        if (Math.random() < 0.01) {
-            console.log("Swim", this.swimAngle);
-            console.log("Food", foodAngle);
-        }
 
         //Add a rotation with cubeRotationSpeed so we can agitate the fish
         this.swimAngle += (cubeRotationSpeed - 1) * 0.01;
@@ -254,7 +249,6 @@ function main() {
     .then((koi_obj_string) => {
 
         const koi_model = loadOBJFromString(koi_obj_string);
-        console.log(koi_model);
 
         //Initialize buffers
         //Global model buffers: original position, face indices
