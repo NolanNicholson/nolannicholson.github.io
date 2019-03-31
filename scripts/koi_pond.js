@@ -25,7 +25,14 @@ class Fish {
         ];
         this.swimAngle = Math.random() * Math.PI * 2 // radians;
 
+        //Initialize the "food" location the fish will drift towards
         this.resetFood();
+
+        //Determine how the fish will respond when the cube is clicked
+        this.cubeResponse = 1;
+        if (Math.random() > 0.5) {
+            this.cubeResponse = -1;
+        }
 
         //"Wiggle" animation parameters - will vary sinusoidally from 0-1
         this.wiggleShift = 0; 
@@ -127,7 +134,7 @@ class Fish {
         this.swimAngle += 0.3 * deltaTime * angleDelta;
 
         //Add a rotation with cubeRotationSpeed so we can agitate the fish
-        this.swimAngle += (cubeRotationSpeed - 1) * 0.01;
+        this.swimAngle += (cubeRotationSpeed - 1) * this.cubeResponse * 0.01;
         
         this.loc[0] += Math.sin(this.swimAngle) * swim_speed;
         this.loc[2] += Math.cos(this.swimAngle) * swim_speed;
@@ -237,9 +244,10 @@ function main() {
     };
 
     //Initialize objects
-    let fishes = [new Fish(gl), new Fish(gl), new Fish(gl)];
+    let fishes = [new Fish(gl), new Fish(gl), new Fish(gl), new Fish(gl)];
     fishes[0].loc[1] = -2;
     fishes[2].loc[1] = 2;
+    fishes[3].loc[1] = -4;
 
     //Load model
     const koi_obj_iframe = document.getElementById("koi_obj");
