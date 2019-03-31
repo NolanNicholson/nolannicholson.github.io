@@ -3,6 +3,9 @@
     the header cube), but to draw its edges as lines too.
 */
 
+// Animation parameter for big cube
+var bigCubeRotation = 0;
+
 main();
 
 function main() {
@@ -33,8 +36,8 @@ function main() {
         }
     `;
 
-    //Fragment shader program
-    const fsSource = `
+    //Fragment shader program for drawing faces
+    const fsSource_faces = `
         varying lowp vec4 vColor;
 
         void main() {
@@ -42,23 +45,51 @@ function main() {
         }
     `;
 
-    //Initialize shader program
-    const shaderProgram = initShaderProgram(gl, vsSource, fsSource);
+    //Fragment shader program for drawing lines
+    const fsSource_lines = `
+        varying lowp vec4 vColor;
 
-    const programInfo = {
-        program: shaderProgram,
+        void main() {
+            gl_FragColor = vec4(0.4, 1.0, 1.0, 1.0);
+        }
+    `;
+
+    //Initialize shader program: one to draw faces, one to draw lines
+    const shaderProgram_faces = initShaderProgram(gl, vsSource, fsSource_faces);
+    const shaderProgram_lines = initShaderProgram(gl, vsSource, fsSource_lines);
+
+    const programInfo_faces = {
+        program: shaderProgram_faces,
         attribLocations: {
             vertexPosition: gl.getAttribLocation(
-                shaderProgram, 'aVertexPosition'),
+                shaderProgram_faces, 'aVertexPosition'),
             vertexColor: gl.getAttribLocation(
-                shaderProgram, 'aVertexColor'),
+                shaderProgram_faces, 'aVertexColor'),
         },
         uniformLocations: {
             projectionMatrix: gl.getUniformLocation(
-                shaderProgram, 'uProjectionMatrix'),
+                shaderProgram_faces, 'uProjectionMatrix'),
             modelViewMatrix: gl.getUniformLocation(
-                shaderProgram, 'uModelViewMatrix'),
+                shaderProgram_faces, 'uModelViewMatrix'),
         },
+        primitive: gl.TRIANGLES,
+    };
+
+    const programInfo_lines = {
+        program: shaderProgram_lines,
+        attribLocations: {
+            vertexPosition: gl.getAttribLocation(
+                shaderProgram_lines, 'aVertexPosition'),
+            vertexColor: gl.getAttribLocation(
+                shaderProgram_lines, 'aVertexColor'),
+        },
+        uniformLocations: {
+            projectionMatrix: gl.getUniformLocation(
+                shaderProgram_lines, 'uProjectionMatrix'),
+            modelViewMatrix: gl.getUniformLocation(
+                shaderProgram_lines, 'uModelViewMatrix'),
+        },
+        primitive: gl.LINES,
     };
 
     const buffers = initBuffers(gl);
@@ -71,7 +102,9 @@ function main() {
         const deltaTime = now - then;
         then = now;
 
-        drawScene(gl, programInfo, buffers, deltaTime);
+        bigCubeRotation += 0.4 * cubeRotationSpeed * deltaTime;
+
+        drawScene(gl, programInfo_faces, programInfo_lines, buffers, deltaTime);
 
         requestAnimationFrame(render);
     }
@@ -81,9 +114,9 @@ function main() {
 //
 //Initialize shader program
 //
-function initShaderProgram(gl, vsSource, fsSource) {
+function initShaderProgram(gl, vsSource, fsSource_faces) {
     const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
-    const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsSource);
+    const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsSource_faces);
 
     //Create shader program
     const shaderProgram = gl.createProgram();
@@ -234,7 +267,7 @@ function resize(gl) {
 //
 //Draw the scene
 //
-function drawScene(gl, programInfo, buffers) {
+function drawScene(gl, programInfo_faces, programInfo_lines, buffers) {
 
     resize(gl);
 
@@ -243,6 +276,7 @@ function drawScene(gl, programInfo, buffers) {
     gl.clearDepth(1.0);
     gl.enable(gl.DEPTH_TEST);
     gl.depthFunc(gl.LEQUAL);
+    gl.lineWidth(5);
 
     //Clear canvas
     gl.clear(gl.COLOR_BUFFER_BIT, gl.DEPTH_BUFFER_BIT);
@@ -263,67 +297,73 @@ function drawScene(gl, programInfo, buffers) {
 
     mat4.rotate(modelViewMatrix,    // destination matrix
         modelViewMatrix,            // matrix to rotate
-        cubeRotation,               // amount to rotate - radians
+        bigCubeRotation,               // amount to rotate - radians
         [0, 0, 1]);                 // axis to rotate around
     mat4.rotate(modelViewMatrix, modelViewMatrix, 
-        cubeRotation * 0.7,
+        bigCubeRotation * 0.7,
         [0, 1, 0]);
 
-    //Tell WebGL how to move data from position buffer
-    //into the vertexPosition attribute
-    {
-        const numComponents = 3;
-        const type = gl.FLOAT;
-        const normalize = false;
-        const stride = 0;
-        const offset = 0;
+    programInfoObjects = [programInfo_faces, programInfo_lines]
+    programInfoObjects.forEach(function(programInfo) {
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
-        gl.vertexAttribPointer(
-            programInfo.attribLocations.vertexPosition,
-            numComponents, type, normalize, stride, offset);
-        gl.enableVertexAttribArray(
-            programInfo.attribLocations.vertexPosition);
-    }
+        //Tell WebGL how to move data from position buffer
+        //into the vertexPosition attribute
+        {
+            const numComponents = 3;
+            const type = gl.FLOAT;
+            const normalize = false;
+            const stride = 0;
+            const offset = 0;
 
-    //Tell WebGL how to move data from color buffer
-    //into the vertexColor attribute
-    {
-        const numComponents = 4;
-        const type = gl.FLOAT;
-        const normalize = false;
-        const stride = 0;
-        const offset = 0;
+            gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
+            gl.vertexAttribPointer(
+                programInfo.attribLocations.vertexPosition,
+                numComponents, type, normalize, stride, offset);
+            gl.enableVertexAttribArray(
+                programInfo.attribLocations.vertexPosition);
+        }
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, buffers.color);
-        gl.vertexAttribPointer(
-            programInfo.attribLocations.vertexColor,
-            numComponents, type, normalize, stride, offset);
-        gl.enableVertexAttribArray(
-            programInfo.attribLocations.vertexColor);
-    }
+        //Tell WebGL how to move data from color buffer
+        //into the vertexColor attribute
+        {
+            const numComponents = 4;
+            const type = gl.FLOAT;
+            const normalize = false;
+            const stride = 0;
+            const offset = 0;
 
-    //Tell WebGL about vertex indices
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
+            gl.bindBuffer(gl.ARRAY_BUFFER, buffers.color);
+            gl.vertexAttribPointer(
+                programInfo.attribLocations.vertexColor,
+                numComponents, type, normalize, stride, offset);
+            gl.enableVertexAttribArray(
+                programInfo.attribLocations.vertexColor);
+        }
 
-    //Specify shader program
-    gl.useProgram(programInfo.program);
+        //Tell WebGL about vertex indices
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
 
-    //Set shader uniforms
-    gl.uniformMatrix4fv(
-        programInfo.uniformLocations.projectionMatrix,
-        false,
-        projectionMatrix);
-    gl.uniformMatrix4fv(
-        programInfo.uniformLocations.modelViewMatrix,
-        false,
-        modelViewMatrix);
+        //Specify shader program
+        gl.useProgram(programInfo.program);
 
-    {
-        const vertexCount = 36;
-        const type = gl.UNSIGNED_SHORT;
-        const offset = 0;
-        gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
-    }
+        //Set shader uniforms
+        gl.uniformMatrix4fv(
+            programInfo.uniformLocations.projectionMatrix,
+            false,
+            projectionMatrix);
+        gl.uniformMatrix4fv(
+            programInfo.uniformLocations.modelViewMatrix,
+            false,
+            modelViewMatrix);
+
+        //Draw the object
+        {
+            const vertexCount = 36;
+            const type = gl.UNSIGNED_SHORT;
+            const offset = 0;
+            gl.drawElements(programInfo.primitive, vertexCount, type, offset);
+        }
+
+    });
 }
 
