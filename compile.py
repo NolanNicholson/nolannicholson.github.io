@@ -28,9 +28,13 @@ with app.app_context():
 
     # Render individual pages
     for filename in os.listdir('templates'):
-        if '.html' in filename:
+        if '.html' in filename and filename != 'base.html':
             print("Compiling template {}...".format(filename))
-            rendered_html = render_template(filename)
+
+            # add the link back home 
+            link_home = filename != 'index.html'
+
+            rendered_html = render_template(filename, link_home=link_home)
             f = open(filename, 'w')
             f.write(rendered_html)
             f.close()

@@ -19,9 +19,14 @@
         <script src="scripts/headercube.js"></script>
         <!--end spinning cube code-->
     </h1>
-
     {% block page_content %}
     {% endblock %}
+    {% if link_home %}
+    <hr>
+    <p>
+        <a href="index.html">Home</a>
+    </p>
+    {% endif %}
 
 </body>
 </html>
