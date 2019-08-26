@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Static Website Compilation - Nolan Nicholson{% endblock %}
+
+{% block page_content %}
+    <h2>Static Website Compilation</h2>
+    <p>
+    <a href="codesnippets.html">Last time</a>, I discussed some of the
+    challenges of rendering code in a modern-looking webpage, using helpful
+    features like syntax highlighting. The most immediately available solution,
+    a JavaScript library from Google, worked well, but it required a server
+    call to Google and some JavaScript execution for a result that we usually
+    expect to be static. As implemented, it also required us to put our code
+    in the HTML page itself, which makes it difficult to develop and test the
+    code.
+    </p>
+
+    <p>
+    This, it turns out, is symptomatic of a broader issue: there is a lot of
+    "work" that is really useful to be able to do automatically on HTML.
+    Formatting code is just one example: it's also really useful to have things
+    like page templating, so that much-reused components like headers and
+    navigation bars don't have to be repeatedly copied and pasted.
+    </p>
+
+    <p>
+    So, I've just finished reorganizing my website to use Jinja2 for automatic
+    template compiling, and to perform some other automatic formatting (namely,
+    syntax highlighting) through Python in the process. Jinja2 is a templating
+    engine that dynamically generates HTML. It is usually used from within
+    Flask to serve websites dynamically. I invoke Jinja2 through Flask, too,
+    but not by running a Flask app! Instead, I just use Flask to create a
+    context for templating.
+    </p>
+
+    <p>
+    Below is the script that performs the templating. All of the page templates
+    are stored in the library <code>templates</code>. They all
+    extend a single template, <code>base.html</code>. Syntax highlighting is then
+    performed using the Python library
+    <a href="https://pygments.org">Pygments</a>.
+    Here is the full script:
+    </p>
+
+    {{ code_snippet('compile.py') | safe }}
+
+    <p>
+    The result is quite maintainable, while still allowing a huge degree of
+    freedom (you can still just specify a page's HTML completely from scratch
+    with no templating, if you want to), and it performs all of the "busy work"
+    just once - instead of delegating it to JavaScript on the reader's side,
+    on every single page load.
+    </p>
+
+
+{% endblock %}
