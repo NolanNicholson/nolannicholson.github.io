@@ -26,7 +26,7 @@ with app.app_context():
     f.close()
 
     # Render individual pages
-    for filename in ['index.html', ]: 
+    for filename in ['index.html', 'fullscreen.html']: 
         rendered_html = render_template(filename)
         f = open(filename, 'w')
         f.write(rendered_html)
