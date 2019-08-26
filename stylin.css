@@ -41,11 +41,16 @@ h1 {
 }
 
 .codeholder {
-    background-color: #eee;
+    background-color: #f3f3f3;
     border-radius: 8px;
-    padding: 10px;
+    padding: 4px;
     max-width: 800px;
     padding-left: 24px;
+}
+.highlight  { background: #f3f3f3; }
+.linenos {
+    color: #aaaaaa;
+    padding-right:8px;
 }
 
 #headercanvas {
