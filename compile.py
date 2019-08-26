@@ -1,3 +1,4 @@
+import os
 from flask import Flask, render_template
 from pygments import highlight
 from pygments.lexers import get_lexer_for_filename
@@ -26,8 +27,10 @@ with app.app_context():
     f.close()
 
     # Render individual pages
-    for filename in ['index.html', 'fullscreen.html']: 
-        rendered_html = render_template(filename)
-        f = open(filename, 'w')
-        f.write(rendered_html)
-        f.close()
+    for filename in os.listdir('templates'):
+        if '.html' in filename:
+            print("Compiling template {}...".format(filename))
+            rendered_html = render_template(filename)
+            f = open(filename, 'w')
+            f.write(rendered_html)
+            f.close()
