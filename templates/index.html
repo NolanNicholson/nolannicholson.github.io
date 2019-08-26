@@ -1,26 +1,6 @@
-<!DOCTYPE html>
-<html>
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <title>Nolan Nicholson</title>
-    <link rel="stylesheet" type="text/css" href="highlighting.css">
-    <link rel='stylesheet' type='text/css' href='https://fonts.googleapis.com/css?family=Roboto+Slab:400,700'>
-    <link rel="stylesheet" type="text/css" href="stylin.css">
-</head>
-
-<body>
-    <h1 class='name'>
-        Nolan Nicholson
-        
-        <!--Code for adding a spinning cube to the header-->
-        <canvas id="headercanvas" width="64" height="64"></canvas>
-        <script src="scripts/libraries/gl-matrix.js"></script>
-        <script src="scripts/headercube.js"></script>
-        <!--end spinning cube code-->
-    </h1>
-
-    
+{% block page_content %}
 
     <p><a href='https://www.linkedin.com/in/nolann/'>LinkedIn</a> |
       <a href='https://github.com/NolanNicholson/'>GitHub</a>
@@ -57,7 +37,4 @@
     </ul>
     </p>
 
-
-
-</body>
-</html>
+{% endblock %}
