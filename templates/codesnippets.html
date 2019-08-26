@@ -1,25 +1,7 @@
-<!DOCTYPE html>
-<html>
+{% extends "base.html" %}
+{% block title %}Code Snippets - Nolan Nicholson{% endblock %}
 
-<head>
-    <meta charset="UTF-8">
-    <title>Code Snippets - Nolan Nicholson</title>
-    <link rel="stylesheet" type="text/css" href="highlighting.css">
-    <link rel='stylesheet' type='text/css' href='https://fonts.googleapis.com/css?family=Roboto+Slab:400,700'>
-    <link rel="stylesheet" type="text/css" href="stylin.css">
-</head>
-
-<body>
-    <h1 class='name'>
-        Nolan Nicholson
-        
-        <!--Code for adding a spinning cube to the header-->
-        <canvas id="headercanvas" width="64" height="64"></canvas>
-        <script src="scripts/libraries/gl-matrix.js"></script>
-        <script src="scripts/headercube.js"></script>
-        <!--end spinning cube code-->
-    </h1>
-    
+{% block page_content %}
     <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
 
     <h2>Rendering Code Snippets on a Static Website</h2>
@@ -88,13 +70,4 @@ std::cout &lt;&lt; "Hello World" &lt;&lt; std::endl;
     assembles the HTML for you.)
     </p>
 
-
-    
-    <hr>
-    <p>
-        <a href="index.html">Home</a>
-    </p>
-    
-
-</body>
-</html>
+{% endblock %}
