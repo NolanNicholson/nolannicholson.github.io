@@ -58,10 +58,14 @@ h1 {
     padding-right: 24px;
     font-size: 16px;
 }
-.highlight  { background: #f3f3f3; }
+.highlight  {
+    background: #f3f3f3;
+    font-size: 16px;
+}
 .linenos {
     color: #aaaaaa;
     padding-right:8px;
+    font-size: 16px;
 }
 
 #headercanvas {
