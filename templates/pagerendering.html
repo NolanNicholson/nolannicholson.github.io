@@ -7,48 +7,114 @@
     <a href="codesnippets.html">Last time</a>, I discussed some of the
     challenges of rendering code in a modern-looking webpage, using helpful
     features like syntax highlighting. The most immediately available solution,
-    a JavaScript library from Google, worked well, but it required a server
-    call to Google and some JavaScript execution for a result that we usually
-    expect to be static. As implemented, it also required us to put our code
-    in the HTML page itself, which makes it difficult to develop and test the
-    code.
+    a JavaScript library from Google, yielded good-looking code, but it
+    required a server call to Google and some JavaScript execution for a
+    result that we know will be the same every time - and that would therefore
+    be more efficient just to bake into the page HTML, if we can.
+    As implemented, it also
+    required us to put our code snippets in the HTML page itself, making it
+    difficult to develop and test the code.
     </p>
 
     <p>
     This, it turns out, is symptomatic of a broader issue: there is a lot of
-    "work" that is really useful to be able to do automatically on HTML.
+    "work" that is generally useful to be able to do automatically on HTML.
     Formatting code is just one example: it's also really useful to have things
     like page templating, so that much-reused components like headers and
     navigation bars don't have to be repeatedly copied and pasted.
     </p>
 
     <p>
-    So, I've just finished reorganizing my website to use Jinja2 for automatic
-    template compiling, and to perform some other automatic formatting (namely,
-    syntax highlighting) through Python in the process. Jinja2 is a templating
-    engine that dynamically generates HTML. It is usually used from within
-    Flask to serve websites dynamically. I invoke Jinja2 through Flask, too,
-    but not by running a Flask app! Instead, I just use Flask to create a
-    context for templating.
+    This task of programmatically modifying HTML is usually what
+    JavaScript is for. But using JavaScript for these tasks
+    means performing them every single time a
+    user loads your page. If your page is viewed <i>n</i> times,
+    then pre-formatting the HTML beforehand is an <i>O(1)</i> algorithm,
+    where formatting the page using JavaScript is <i>O(n)</i>.
+    The <i>n</i> executions just happen on other people's computers.
     </p>
 
     <p>
-    Below is the script that performs the templating. All of the page templates
+    So, I've just finished reorganizing my website to use
+    <a href="https://palletsprojects.com/p/jinja/">Jinja</a> for automatic
+    template compiling, and to perform some other automatic formatting (namely,
+    syntax highlighting) through Python in the process. Jinja is a templating
+    engine that dynamically generates HTML. It is most commonly
+    used from within the web framework
+    <a href="https://palletsprojects.com/p/flask/">Flask</a>,
+    to generate HTML for dynamic websites. But that doesn't mean it can't be
+    used for static websites too! In this case, I just use the Flask app to
+    get a context, in which I can save the results of Flask's render_template()
+    function to a file:
+    </p>
+
+    {{ code_snippet('compile.py', 27) | safe }}
+
+    <p>
+    Using Python to bake the HTML beforehand also has the side benefit of
+    letting you load text from external files into your HTML - a task which
+    is <a href=https://stackoverflow.com/questions/6348207/making-a-paragraph-in-html-contain-a-text-from-a-file>harder than one might think</a>
+    to do at runtime, basically requiring either PHP or AJAX. Here, we can
+    simply load it using Python and bake it right into the rendered HTML:
+    </p>
+
+    {{ code_snippet('compile.py', 9, 22) | safe }}
+
+    <p>
+    With that defined, including external code in the template is as simple as:
+    </p>
+
+    {{ code_snippet('snippet_template.html') | safe }}
+
+    <p>
+    Below is the full script that performs the templating.
+    All of the page templates
     are stored in the library <code>templates</code>. They all
-    extend a single template, <code>base.html</code>. Syntax highlighting is then
-    performed using the Python library
+    extend a single template, <code>base.html</code>. Syntax highlighting is
+    then performed using the Python library
     <a href="https://pygments.org">Pygments</a>.
-    Here is the full script:
     </p>
 
     {{ code_snippet('compile.py') | safe }}
 
     <p>
-    The result is quite maintainable, while still allowing a huge degree of
+    Writing and hands-on development are done on the templates; then,
+    a call to <code>python3 compile.py</code> puts together the "real" HTML
+    files. I run this script manually, but I envision it could easily be
+    worked into a CI workflow and done automatically.
+    </p>
+
+    <p>
+    Fun fact: as of right now, the templates are still accessible on this
+    site. This page, for example, is made from two templates:
+    <a href="templates/base.html"><code>base.html</code></a> (for the
+    formatting and objects common to all the pages on this site) and
+    <a href="templates/pagerendering.html"><code>pagerendering.html</code></a>
+    (for the content specific to this page.)
+    But they are unrendered templates - so don't expect anything pretty!
+    </p>
+
+    <p>
+    Overall, the result is quite maintainable,
+    while still allowing a huge degree of
     freedom (you can still just specify a page's HTML completely from scratch
-    with no templating, if you want to), and it performs all of the "busy work"
+    with no templating and just pass it through, if you want to),
+    and it performs all of the "busy work"
     just once - instead of delegating it to JavaScript on the reader's side,
-    on every single page load.
+    on every single page load. This idea isn't necessarily specific to
+    purely static websites either; it could be used to lessen the redundant
+    work done by a web server, or simply to help reduce load times by
+    trimming some JavaScript fat.
+    </p>
+
+    <p>
+    I hope this is helpful! I made it in part because I didn't see a solution
+    out there for avoiding some of the busy work of static website composition
+    while still staying close to simple, clean HTML. (That second part
+    disqualified full-fledged CMS's like WordPress and Medium.) But if there
+    is such a solution I missed, please drop me a line -
+    I'd love to know about it, and
+    I'd still be happy to have gotten the experience putting this together.
     </p>
 
 
