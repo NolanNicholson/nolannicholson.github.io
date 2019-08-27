@@ -40,6 +40,14 @@ h1 {
     margin-bottom: 0;
 }
 
+.name a {
+    color: #333333;
+    text-decoration: none;
+}
+.name a:hover {
+    color: #555555;
+}
+
 .codeholder {
     background-color: #f3f3f3;
     border-radius: 8px;
