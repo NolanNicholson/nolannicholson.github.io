@@ -1,8 +1,53 @@
-console.log("hello");
-
+/*
+JavaScript implementation of Conway's Game of Life
+Nolan Nicholson, 2019
+*/
+  
 var rows = 10;
 var cols = 20;
 var playing = false;
+
+function is_alive(td) {
+    return (td.classList.contains('alive') ? true : false);
+}
+
+function get_x(td) {
+    var x = 0;
+    while (td.previousElementSibling != null) {
+        x++;
+        td = td.previousElementSibling;
+    }
+    return x;
+}
+
+function get_live_neighbor_count(td) {
+    var num_live_neighbors = 0;
+    var n, neighbor;
+    var x = get_x(td);
+
+    //Check cells to the left and the right
+    for (neighbor of [td.previousSibling, td.nextSibling]) {
+        if (neighbor !== null && is_alive(neighbor)) {
+            num_live_neighbors++;
+        }
+    }
+
+    //Check cells above and below
+    var this_row = td.parentElement;
+    for (var tr of [this_row.previousElementSibling,
+        this_row.nextElementSibling]) {
+        if (tr != null) {
+            n = tr.children[x]
+            for (neighbor of [n, n.previousSibling, n.nextSibling]) {
+                if (neighbor != null && is_alive(neighbor)) {
+                    num_live_neighbors++;
+                }
+            }
+        }
+    }
+
+    return num_live_neighbors;
+}
 
 function toggle_playing() {
     playing = !playing;
@@ -26,7 +71,7 @@ function randomize() {
 }
 
 function toggle_alive(td) {
-    if (td.classList.contains('alive')) {
+    if (is_alive(td)) {
         td.className = "gol dead";
     } else {
         td.className = "gol alive";
