@@ -25,15 +25,15 @@ td.gol.alive.age2 {
 }
 
 td.gol.dead.age0 {
-    background-color: #bbb;
+    background-color: #cccccc;
 }
 
 td.gol.dead.age1 {
-    background-color: #c6c6c6;
+    background-color: #d6d6d6;
 }
 
 td.gol.dead.age2 {
-    background-color: #cacaca;
+    background-color: #dadada;
 }
 
 td.gol.dead:hover {
