@@ -1,0 +1,21 @@
+table#gol-table {
+    border-collapse: collapse;
+}
+
+td.gol {
+    width: 1em;
+    height: 1em;
+    background-color: #ddd;
+}
+
+td.gol.alive {
+    background-color: #636;
+}
+
+td.gol.dead:hover {
+    background-color: #caf;
+}
+
+td.gol.alive:hover {
+    background-color: #000;
+}
