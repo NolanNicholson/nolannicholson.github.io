@@ -4,9 +4,6 @@ Animation of colorful fish swimming.
 
 */
 
-//TODO make a 'fish' object that contains buffers, matrices, etc.
-//TODO have two fish on screen at once
-
 var swim_clock = 0; // internal clock for animation timing
 const wiggle_speed = 4; // frequency for sine function
 const wiggle_amplitude = 0.4; // amplitude of distortion sine function
