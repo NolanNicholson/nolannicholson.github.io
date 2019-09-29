@@ -3,9 +3,10 @@ JavaScript implementation of Conway's Game of Life
 Nolan Nicholson, 2019
 */
   
-var rows = 10;
+var rows = 20;
 var cols = 30;
 var playing = false;
+var timer_var;
 
 function is_alive(td) {
     return (td.classList.contains('alive') ? true : false);
@@ -93,8 +94,16 @@ function update_board() {
 
 function toggle_playing() {
     playing = !playing;
+
+    //update the button's appearance
     var btn_play = document.getElementById("btn-pauseplay");
     btn_play.textContent = (playing ? "Pause" : "Resume");
+
+    if (playing) {
+        timer_var = window.setInterval(update_board, 300);
+    } else {
+        clearInterval(timer_var);
+    }
 }
 
 function randomize() {
@@ -143,6 +152,10 @@ function load() {
     //pause/play button
     var btn_play = document.getElementById("btn-pauseplay");
     btn_play.addEventListener('click', toggle_playing);
+
+    //step button
+    var btn_step = document.getElementById("btn-step");
+    btn_step.addEventListener('click', update_board);
 
     //randomize button
     var btn_random = document.getElementById("btn-randomize");
