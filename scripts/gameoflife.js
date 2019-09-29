@@ -54,10 +54,14 @@ function update_cell(td, neighbor_count) {
     if (is_alive(td)) {
         if (neighbor_count < 2 || neighbor_count > 3) {
             toggle_alive(td);
+        } else {
+            increase_age(td);
         }
     } else {
         if (neighbor_count == 3) {
             toggle_alive(td);
+        } else {
+            increase_age(td);
         }
     }
 }
@@ -114,18 +118,32 @@ function randomize() {
     for (let r = 0; r < rows; r++) {
         td = tr.firstElementChild;
         for (let c = 0; c < cols; c++) {
-            td.className = (Math.random() > 0.7 ? "gol alive" : "gol dead");
+            td.className = (Math.random() > 0.7 ?
+                "gol alive age0" : "gol dead age0");
             td = td.nextElementSibling;
         }
         tr = tr.nextElementSibling;
     }
 }
 
+function increase_age(td) {
+    //the age is the last token for live cells
+    var age_token = td.classList[td.classList.length - 1]
+    var doa = (is_alive(td) ? "alive" : "dead");
+
+    //advance the age, up to age 3 (using classes so CSS can handle color)
+    switch (age_token) {
+        case 'age0': td.className = "gol " + doa + " age1"; break;
+        case 'age1': td.className = "gol " + doa + " age2"; break;
+        case 'age2': td.className = "gol " + doa + " age3"; break;
+    }
+}
+
 function toggle_alive(td) {
     if (is_alive(td)) {
-        td.className = "gol dead";
+        td.className = "gol dead age0";
     } else {
-        td.className = "gol alive";
+        td.className = "gol alive age0";
     }
 }
 
