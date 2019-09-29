@@ -13,6 +13,8 @@ function is_alive(td) {
 }
 
 function get_x(td) {
+    //x coordinate is retrieved by backing up to the first element (cell)
+    //in the group of siblings (row).
     var x = 0;
     while (td.previousElementSibling != null) {
         x++;
@@ -22,8 +24,11 @@ function get_x(td) {
 }
 
 function get_live_neighbor_count(td) {
+    //This function returns the number of "alive" neighbors for a given
+    //cell. Neighbors are those cells which are adjacent horizontally,
+    //vertically, or diagonally.
     var num_live_neighbors = 0;
-    var n, neighbor;
+    var n, neighbor; //different vars for neighbors and neighbors' siblings
     var x = get_x(td);
 
     //Check cells to the left and the right
@@ -37,8 +42,11 @@ function get_live_neighbor_count(td) {
     var this_row = td.parentElement;
     for (var tr of [this_row.previousElementSibling,
         this_row.nextElementSibling]) {
+        //If the row exists at all...
         if (tr != null) {
+            //get the cell directly above and below
             n = tr.children[x]
+            //...and check it along with its left/right neighbors
             for (neighbor of [n, n.previousSibling, n.nextSibling]) {
                 if (neighbor != null && is_alive(neighbor)) {
                     num_live_neighbors++;
@@ -51,6 +59,9 @@ function get_live_neighbor_count(td) {
 }
 
 function update_cell(td, neighbor_count) {
+    //Game of Life rules:
+    //Living cells die if they have fewer than 2 or more than 3 neighbors.
+    //Dead cells come alive if they have exactly 3 neighbors.
     if (is_alive(td)) {
         if (neighbor_count < 2 || neighbor_count > 3) {
             toggle_alive(td);
@@ -67,12 +78,14 @@ function update_cell(td, neighbor_count) {
 }
 
 function update_board() {
-    //Get all neighbor counts
+
     var tb = document.getElementById("gol-table");
     var tr = tb.firstElementChild;
     var td;
     var neighbor_counts = [];
 
+    //Get all neighbor counts in an array first.
+    //This way, the update of earlier cells won't affect later cells.
     for (let r = 0; r < rows; r++) {
         var row = [];
         td = tr.firstElementChild;
@@ -103,6 +116,7 @@ function toggle_playing() {
     var btn_play = document.getElementById("btn-pauseplay");
     btn_play.textContent = (playing ? "Pause" : "Resume");
 
+    //activate or deactivate a timer interval
     if (playing) {
         timer_var = window.setInterval(update_board, 300);
     } else {
@@ -115,11 +129,31 @@ function randomize() {
     var tr = tb.firstElementChild;
     var td;
 
+    //Randomize the entire table, giving each cell a 30% chance of life
     for (let r = 0; r < rows; r++) {
         td = tr.firstElementChild;
         for (let c = 0; c < cols; c++) {
             td.className = (Math.random() > 0.7 ?
                 "gol alive age0" : "gol dead age0");
+            td = td.nextElementSibling;
+        }
+        tr = tr.nextElementSibling;
+    }
+}
+
+function clear() {
+    var tb = document.getElementById("gol-table");
+    var tr = tb.firstElementChild;
+    var td;
+    console.log('hello');
+
+    //Clear the entire table
+    for (let r = 0; r < rows; r++) {
+        td = tr.firstElementChild;
+        for (let c = 0; c < cols; c++) {
+            if (is_alive(td)) {
+                toggle_alive(td);
+            }
             td = td.nextElementSibling;
         }
         tr = tr.nextElementSibling;
@@ -154,6 +188,8 @@ function click_on_table(event) {
 function load() {
     var tb = document.getElementById("gol-table");
     
+    //Create the table rows and cells
+    //(done via JS so that the size can be easily adjusted)
     var tr, td;
     for (let r = 0; r < rows; r++) {
         tr = document.createElement("tr");
@@ -178,6 +214,10 @@ function load() {
     //randomize button
     var btn_random = document.getElementById("btn-randomize");
     btn_random.addEventListener('click', randomize);
+
+    //clear button
+    var btn_clear = document.getElementById("btn-clear");
+    btn_clear.addEventListener('click', clear);
 }
 
 load();
