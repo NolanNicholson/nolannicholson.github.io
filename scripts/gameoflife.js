@@ -4,7 +4,7 @@ Nolan Nicholson, 2019
 */
   
 var rows = 10;
-var cols = 20;
+var cols = 30;
 var playing = false;
 
 function is_alive(td) {
@@ -47,6 +47,48 @@ function get_live_neighbor_count(td) {
     }
 
     return num_live_neighbors;
+}
+
+function update_cell(td, neighbor_count) {
+    if (is_alive(td)) {
+        if (neighbor_count < 2 || neighbor_count > 3) {
+            toggle_alive(td);
+        }
+    } else {
+        if (neighbor_count == 3) {
+            toggle_alive(td);
+        }
+    }
+}
+
+function update_board() {
+    //Get all neighbor counts
+    var tb = document.getElementById("gol-table");
+    var tr = tb.firstElementChild;
+    var td;
+    var neighbor_counts = [];
+
+    for (let r = 0; r < rows; r++) {
+        var row = [];
+        td = tr.firstElementChild;
+        for (let c = 0; c < cols; c++) {
+            row.push(get_live_neighbor_count(td));
+            td = td.nextElementSibling;
+        }
+        neighbor_counts.push(row);
+        tr = tr.nextElementSibling;
+    }
+    
+    //Update cells based on neighbor counts
+    tr = tb.firstElementChild;
+    for (let r = 0; r < rows; r++) {
+        td = tr.firstElementChild;
+        for (let c = 0; c < cols; c++) {
+            update_cell(td, neighbor_counts[r][c]);
+            td = td.nextElementSibling;
+        }
+        tr = tr.nextElementSibling;
+    }
 }
 
 function toggle_playing() {
