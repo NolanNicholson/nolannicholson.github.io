@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Game of Life - Nolan Nicholson</title>
+    <link rel="stylesheet" type="text/css" href="styles/highlighting.css">
+    <link rel='stylesheet' type='text/css' href='https://fonts.googleapis.com/css?family=Roboto+Slab:400,700'>
+    <link rel="stylesheet" type="text/css" href="styles/main.css">
+</head>
+
+<body>
+    <h1 class='name'>
+        <a href="index.html">Nolan Nicholson</a>
+        
+        <!--Code for adding a spinning cube to the header-->
+        <canvas id="headercanvas" width="64" height="64"></canvas>
+        <script src="scripts/libraries/gl-matrix.js"></script>
+        <script src="scripts/headercube.js"></script>
+        <!--end spinning cube code-->
+    </h1>
+    
+    <h2>Conway's Game of Life (in Vanilla JavaScript)</h2>
+    <a href="gameoflife.html">
+    <p style="width: 100%; background-color: #ddd; text-align: center;">
+    <img src="images/gol.png" width=300px></img>
+    </p>
+    </a>
+    <p>
+    I've been learning more about JavaScript and 
+    <a href="https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model/Introduction">the DOM</a> in particular,
+    and I wanted to try out something to cement what I'd learned. To that end,
+    I've created 
+    <a href="gameoflife.html">
+        an implementation of Conway's Game of Life</a>
+    using nothing but vanilla JavaScript and CSS.
+    </p>
+    
+    <p>
+    (This is obviously not any kind of monumental achievement - 
+    in fact, this is probably, like, implementation #4,920,110 of
+    the Game of Life in Javascript - 
+    but it was a fun project,
+    and I'd recommend it to anyone interested in some quick practice in
+    basic DOM traversal.
+    </p>
+
+    <h2>The game's basic rules</h2>
+    <p>
+    <a href="https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life">
+        Conway's Game of Life</a>
+    takes place on a grid of "cells" which can have two
+    possible states - alive or dead. 
+    The grid is periodically updated, and during these updates,
+    cells will come alive or die based on the following rules:
+    </p>
+
+    <ol>
+        <li>
+            Each cell has up to eight "neighbors" - the cells that are
+            horizontally, vertically, or diagonally adjacent to it.
+            These neighbors can be alive or dead.
+        </li>
+        <li>
+            If a living cell has two or three neighbors, it stays alive.
+            If it has fewer than two or more than three, it dies.
+        </li>
+        <li>
+            If a dead cell has exactly three neighbors, it comes alive.
+        </li>
+    </ol>
+
+    <p>
+    And that's all. From just those rules, you can get a dizzying variety of
+    results and patterns - including a
+    <a href="https://www.ics.uci.edu/~welling/teaching/271fall09/Turing-Machine-Life.pdf">Turing machine</a>!
+    </p>
+
+    <h2>How this implementation works</h2>
+    <h3>Storing the grid in a table</h3>
+    <p>
+    The cells themselves are represented as <code>td</code> elements
+    in an HTML table.
+    Each cell is of either the class <code>alive</code> or the class
+    <code>dead</code>, and those classes are used both to keep track of the
+    cell's state in the script and to manage CSS formatting.
+    </p>
+
+    <p>
+    Each cell also has an "age" class that can be either <code>age0</code>,
+    <code>age1</code>, <code>age2</code>, or <code>age3</code>. This is
+    outside the strict rules of the Game of Life and is purely a cosmetic
+    thing: it's used to add CSS rules showing how long which cells recently
+    came alive or died.
+    </p>
+
+    <p>
+    The elements themselves are automatically added (both to avoid repetitive
+    HTML entry, and to make the size of the grid easily adjustable):
+    </p>
+
+    <div class='codeholder'>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200
+201
+202</pre></div></td><td class="code"><div class="highlight"><pre><span></span>    <span class="kd">var</span> <span class="nx">tb</span> <span class="o">=</span> <span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s2">&quot;gol-table&quot;</span><span class="p">);</span>
+    
+    <span class="c1">//Create the table rows and cells</span>
+    <span class="c1">//(done via JS so that the size can be easily adjusted)</span>
+    <span class="kd">var</span> <span class="nx">tr</span><span class="p">,</span> <span class="nx">td</span><span class="p">;</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kd">let</span> <span class="nx">r</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">r</span> <span class="o">&lt;</span> <span class="nx">rows</span><span class="p">;</span> <span class="nx">r</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">tr</span> <span class="o">=</span> <span class="nb">document</span><span class="p">.</span><span class="nx">createElement</span><span class="p">(</span><span class="s2">&quot;tr&quot;</span><span class="p">);</span>
+        <span class="k">for</span> <span class="p">(</span><span class="kd">let</span> <span class="nx">c</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">c</span> <span class="o">&lt;</span> <span class="nx">cols</span><span class="p">;</span> <span class="nx">c</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nx">td</span> <span class="o">=</span> <span class="nb">document</span><span class="p">.</span><span class="nx">createElement</span><span class="p">(</span><span class="s2">&quot;td&quot;</span><span class="p">);</span>
+            <span class="nx">td</span><span class="p">.</span><span class="nx">className</span> <span class="o">=</span> <span class="s2">&quot;gol dead&quot;</span><span class="p">;</span>
+            <span class="nx">tr</span><span class="p">.</span><span class="nx">appendChild</span><span class="p">(</span><span class="nx">td</span><span class="p">);</span>
+        <span class="p">}</span>
+        <span class="nx">tb</span><span class="p">.</span><span class="nx">appendChild</span><span class="p">(</span><span class="nx">tr</span><span class="p">);</span>
+    <span class="p">}</span>
+</pre></div>
+</td></tr></table>
+</div>
+
+    <h3>Checking neighbors via DOM traversal</h3>
+    <p>
+    The most unusual part of using an HTML table for this is accessing
+    each cell's neighbors to determine whether the cell must live or die.
+    In most implementations of this game, the cell data would probably be
+    stored in a matrix; then, checking the cell at
+    <code>(x, y)</code> would be accomplished by looking up the cell at,
+    say, <code>(x+1, y+1)</code>, for a diagonal neighbor. You could do this
+    here, too! You could implement the grid's data as a matrix, and then pass
+    that data to your HTML table to "draw" it.
+    </p>
+
+    <p>
+    But if you're storing the data in a table anyway, then that opens up
+    another method for checking the neighbors: DOM traversal! In particular,
+    the methods 
+    <a href="https://developer.mozilla.org/en-US/docs/Web/API/NonDocumentTypeChildNode/previousElementSibling"><code>previousElementSibling</code></a>,
+    <a href="https://developer.mozilla.org/en-US/docs/Web/API/NonDocumentTypeChildNode/nextElementSibling"><code>nextElementSibling</code></a>, and
+    <a href="https://developer.mozilla.org/en-US/docs/Web/API/Node/parentElement"><code>parentElement</code></a>
+    can work well here.
+    </p>
+
+    <p>
+    The horizontal neighbors are the easiest to check, since they are located
+    in the adjacent <code>td</code>elements, so they can be accessed by
+    <code>previousElementSibling</code> and <code>nextElementSibling</code>.
+    (If the cell being checked is at the left or right edge, then 
+    there is no sibling, and the relevant one of these methods will just return
+    <code>null</code> - which I interpret here as equivalent to "dead":
+    </p>
+
+    <div class='codeholder'>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kd">function</span> <span class="nx">get_live_neighbor_count</span><span class="p">(</span><span class="nx">td</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">//This function returns the number of &quot;alive&quot; neighbors for a given</span>
+    <span class="c1">//cell. Neighbors are those cells which are adjacent horizontally,</span>
+    <span class="c1">//vertically, or diagonally.</span>
+    <span class="kd">var</span> <span class="nx">num_live_neighbors</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="kd">var</span> <span class="nx">n</span><span class="p">,</span> <span class="nx">neighbor</span><span class="p">;</span> <span class="c1">//different vars for neighbors and neighbors&#39; siblings</span>
+    <span class="kd">var</span> <span class="nx">x</span> <span class="o">=</span> <span class="nx">get_x</span><span class="p">(</span><span class="nx">td</span><span class="p">);</span>
+
+    <span class="c1">//Check cells to the left and the right</span>
+    <span class="k">for</span> <span class="p">(</span><span class="nx">neighbor</span> <span class="k">of</span> <span class="p">[</span><span class="nx">td</span><span class="p">.</span><span class="nx">previousSibling</span><span class="p">,</span> <span class="nx">td</span><span class="p">.</span><span class="nx">nextSibling</span><span class="p">])</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nx">neighbor</span> <span class="o">!==</span> <span class="kc">null</span> <span class="o">&amp;&amp;</span> <span class="nx">is_alive</span><span class="p">(</span><span class="nx">neighbor</span><span class="p">))</span> <span class="p">{</span>
+            <span class="nx">num_live_neighbors</span><span class="o">++</span><span class="p">;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+</pre></div>
+</td></tr></table>
+</div>
+
+    <p>
+    The other six neighbors are a little more complicated, since they're
+    in different rows. There isn't really (as far as I know) an equivalent
+    one-liner for "traverse to the <code>td</code> directly above this one."
+    Instead, order to get to them, we have to first traverse to
+    the parent row (the <code>tr</code> element) that contains our cell.
+    Then, we use 
+    <code>previousElementSibling</code> and <code>nextElementSibling</code> to
+    get to the adjacent rows (where before we were traversing between cells.)
+    </p>
+
+    <p>
+    Assuming the adjacent row isn't <code>null</code>, we then
+    access the <code>td</code> elements inside it using its 
+    <code>children</code> property. But <i>which</i> of the children do we
+    look at? Even though we aren't using a matrix, we still need to know our
+    X coordinate... but we can get it using <code>previousElementSibling</code>.
+    How? We just call it repeatedly until it <code>null</code>s out:
+    </p>
+
+    <div class='codeholder'>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>15
+16
+17
+18
+19
+20
+21
+22
+23
+24</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kd">function</span> <span class="nx">get_x</span><span class="p">(</span><span class="nx">td</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">//x coordinate is retrieved by backing up to the first element (cell)</span>
+    <span class="c1">//in the group of siblings (row).</span>
+    <span class="kd">var</span> <span class="nx">x</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="k">while</span> <span class="p">(</span><span class="nx">td</span><span class="p">.</span><span class="nx">previousElementSibling</span> <span class="o">!=</span> <span class="kc">null</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">x</span><span class="o">++</span><span class="p">;</span>
+        <span class="nx">td</span> <span class="o">=</span> <span class="nx">td</span><span class="p">.</span><span class="nx">previousElementSibling</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="nx">x</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</td></tr></table>
+</div>
+
+    <p>
+    With that, we can access the correct elements of the adjacent rows,
+    which will be our vertically adjacent elements. We can also pick up
+    the diagonally adjacent elements while we're at it.
+    </p>
+
+    <div class='codeholder'>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59</pre></div></td><td class="code"><div class="highlight"><pre><span></span>    <span class="c1">//Check cells above and below</span>
+    <span class="kd">var</span> <span class="nx">this_row</span> <span class="o">=</span> <span class="nx">td</span><span class="p">.</span><span class="nx">parentElement</span><span class="p">;</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="nx">tr</span> <span class="k">of</span> <span class="p">[</span><span class="nx">this_row</span><span class="p">.</span><span class="nx">previousElementSibling</span><span class="p">,</span>
+        <span class="nx">this_row</span><span class="p">.</span><span class="nx">nextElementSibling</span><span class="p">])</span> <span class="p">{</span>
+        <span class="c1">//If the row exists at all...</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nx">tr</span> <span class="o">!=</span> <span class="kc">null</span><span class="p">)</span> <span class="p">{</span>
+            <span class="c1">//get the cell directly above and below</span>
+            <span class="nx">n</span> <span class="o">=</span> <span class="nx">tr</span><span class="p">.</span><span class="nx">children</span><span class="p">[</span><span class="nx">x</span><span class="p">]</span>
+            <span class="c1">//...and check it along with its left/right neighbors</span>
+            <span class="k">for</span> <span class="p">(</span><span class="nx">neighbor</span> <span class="k">of</span> <span class="p">[</span><span class="nx">n</span><span class="p">,</span> <span class="nx">n</span><span class="p">.</span><span class="nx">previousSibling</span><span class="p">,</span> <span class="nx">n</span><span class="p">.</span><span class="nx">nextSibling</span><span class="p">])</span> <span class="p">{</span>
+                <span class="k">if</span> <span class="p">(</span><span class="nx">neighbor</span> <span class="o">!=</span> <span class="kc">null</span> <span class="o">&amp;&amp;</span> <span class="nx">is_alive</span><span class="p">(</span><span class="nx">neighbor</span><span class="p">))</span> <span class="p">{</span>
+                    <span class="nx">num_live_neighbors</span><span class="o">++</span><span class="p">;</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="k">return</span> <span class="nx">num_live_neighbors</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</td></tr></table>
+</div>
+
+    <h3>Finally, the Game of Life</h3>
+    <p>
+    Getting the number of living neighbors was the hard part. Once that is
+    known, actually doing that whole Game of Life thing is easy!
+    </p>
+
+    <div class='codeholder'>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kd">function</span> <span class="nx">update_cell</span><span class="p">(</span><span class="nx">td</span><span class="p">,</span> <span class="nx">neighbor_count</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">//Game of Life rules:</span>
+    <span class="c1">//Living cells die if they have fewer than 2 or more than 3 neighbors.</span>
+    <span class="c1">//Dead cells come alive if they have exactly 3 neighbors.</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nx">is_alive</span><span class="p">(</span><span class="nx">td</span><span class="p">))</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nx">neighbor_count</span> <span class="o">&lt;</span> <span class="mi">2</span> <span class="o">||</span> <span class="nx">neighbor_count</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nx">toggle_alive</span><span class="p">(</span><span class="nx">td</span><span class="p">);</span>
+        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+            <span class="nx">increase_age</span><span class="p">(</span><span class="nx">td</span><span class="p">);</span>
+        <span class="p">}</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nx">neighbor_count</span> <span class="o">==</span> <span class="mi">3</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nx">toggle_alive</span><span class="p">(</span><span class="nx">td</span><span class="p">);</span>
+        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+            <span class="nx">increase_age</span><span class="p">(</span><span class="nx">td</span><span class="p">);</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</td></tr></table>
+</div>
+
+    <h2>Final thoughts</h2>
+    <p>
+    One implementation detail I didn't quite figure out: if you
+    <a href="gameoflife.html">fire it up</a> and try to draw on the grid,
+    you can only do it one cell at a time.
+    You can't click and drag multiple cells at
+    once, which makes it a bit harder to draw in a pattern you want.
+    Right now, clicking on the grid is implemented using
+    the <code>mousedown</code> event:
+    </p>
+
+    <div class='codeholder'>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>204
+205</pre></div></td><td class="code"><div class="highlight"><pre><span></span>    <span class="nx">tb</span><span class="p">.</span><span class="nx">addEventListener</span><span class="p">(</span><span class="s1">&#39;mousedown&#39;</span><span class="p">,</span>
+        <span class="kd">function</span><span class="p">(</span><span class="nx">event</span><span class="p">)</span> <span class="p">{</span><span class="nx">click_on_table</span><span class="p">(</span><span class="nx">event</span><span class="p">)});</span>
+</pre></div>
+</td></tr></table>
+</div>
+
+    <p>
+    But there might be a better event, or a better way to use it.
+    If you know how I might improve this part of the experience, feel free to
+    drop me a line!
+    </p>
+
+    <p>
+    You can check out the full script
+    <a href="scripts/gameoflife.js">here</a>
+    along with the full implementation
+    <a href="gameoflife.html">here</a>.
+
+
+    
+    <hr>
+    <p>
+        <a href="index.html">Home</a>
+    </p>
+    
+
+</body>
+</html>
