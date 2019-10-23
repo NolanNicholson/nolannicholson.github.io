@@ -39,8 +39,24 @@ a:active {
 
 h1 {
     font-weight: bold;
-    font-size: 2.5em;
+    font-size: 2em;
     margin-bottom: 0;
+    text-align: center;
+}
+
+h2 {
+    text-align: left;
+}
+
+@media (min-width: 768px) {
+    h1 {
+        text-align: left;
+        font-size: 2.5em;
+    }
+    
+    h2 {
+        text-align: left;
+    }
 }
 
 .name a {
@@ -69,6 +85,16 @@ h1 {
 }
 
 #headercanvas {
-    display:inline-block;
     vertical-align: text-bottom;
+}
+
+#headercanvas-holder {
+    display: block;
+    text-align: center;
+}
+
+@media (min-width: 768px) {
+    #headercanvas-holder {
+        display: inline-block;
+    }
 }
