@@ -11,9 +11,9 @@ body {
 
 @media (min-width: 768px) {
     body {
-        margin-left: 100px;
-        margin-right: 100px;
-        max-width: 800px;
+        margin-left: 5em;
+        margin-right: 5em;
+        max-width: 40em;
     }
 }
 
@@ -54,10 +54,10 @@ h1 {
 .codeholder {
     display: block;
     background-color: #f3f3f3;
-    border-radius: 8px;
-    padding: 4px;
-    padding-left: 24px;
-    padding-right: 24px;
+    border-radius: 0.5em;
+    padding: 0.5em;
+    padding-left: 1em;
+    padding-right: 1em;
     font-size: 1.2em;
     max-width: 100%;
     overflow-x: auto;
@@ -65,7 +65,7 @@ h1 {
 
 .linenos {
     color: #aaaaaa;
-    padding-right:8px;
+    padding-right:0.5em;
 }
 
 #headercanvas {
