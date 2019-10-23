@@ -17,6 +17,16 @@ body {
     }
 }
 
+.grouped-links {
+    text-align: center;
+}
+
+@media (min-width: 768px) {
+    .grouped-links {
+        text-align: left;
+    }
+}
+
 a, a:link {
     color: #40a8e8;
 }
