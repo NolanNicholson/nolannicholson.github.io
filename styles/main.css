@@ -84,6 +84,8 @@ h1 {
 
 #headercanvas {
     vertical-align: text-bottom;
+    width: 1.5em;
+    height: 1.5em;
 }
 
 @media (min-width: 768px) {
