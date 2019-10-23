@@ -9,7 +9,7 @@ body {
     color: #333333;
 }
 
-@media min-width: 768px {
+@media (min-width: 768px) {
     body {
         margin-left: 100px;
         margin-right: 100px;
