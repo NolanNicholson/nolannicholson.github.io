@@ -78,10 +78,6 @@ h1 {
     overflow-x: auto;
 }
 
-.highlight, .linenodiv {
-    font-size: 1.0em;
-}
-
 .linenos {
     color: #aaaaaa;
     padding-right:0.5em;
