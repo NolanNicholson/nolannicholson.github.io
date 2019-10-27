@@ -6,7 +6,12 @@
 <h2>Looping Music Seamlessly</h2>
 
 <p>
-I wrote a Python script that lets you loop music files seamlessly, forever,
+<img src="images/looper/headerbanner.png" alt="Header banner"
+    style="width: 100%">
+</p>
+
+<p>
+I wrote a Python script that lets you loop .mp3 files seamlessly, forever,
 based on a loop point determined automatically. This means that you can now
 listen to your favorite video game music on repeat, forever, sounding just
 like it does in the game! You can download the script here:
@@ -20,9 +25,9 @@ like it does in the game! You can download the script here:
 
 <p>
 What follows is a longer explanation of why I did this and how
-it works. If you are interested in digital signal processing,
-the Fourier Transform, Super Mario games, and the emergent online
-politics of video game music, then read on.
+it works. If you are interested in ad-hoc online communities for
+handcrafted video game music extensions, digital signal processing,
+the Fourier Transform, and Super Mario games, then read on.
 </p>
 
 <h3>Why would you do this?</h3>
@@ -38,15 +43,17 @@ it gets used in an environment, like a menu or level,
 where you have no idea
 how long the player will spend there, and you don't want it to go eerily
 quiet after a few minutes, but you also don't want to have any
-noticeable "break" where the song stops and starts again, so you ideally
-make something that can loop seamlessly. Also, it should
-be catchy to listen to, but not <i>so</i> catchy that it distracts the player
+noticeable "break" where the song stops and starts again. So you ideally
+make something that can loop seamlessly, without an audible pause or "hiccup."
+Also, it should be catchy to listen to, but not
+<i>so</i> catchy that it distracts the player
 from the particular game it is supposed to be supporting.
+Switch out "playing that particular game" for "doing anything else",
+and you've got perfect ambient music.
 </p>
 
 <p>
-Switch out "playing that particular game" for "doing anything else",
-and you've got perfect ambient music. But... how do you listen to it while
+But... how do you listen to it while
 doing something else? You could leave the game itself on pause, playing the
 audio.
 This works great, sometimes: <i>Super Smash Bros. Ultimate</i>
@@ -58,8 +65,8 @@ well because that game was released on a console you can carry around with you.
 <p>
 On the other hand, if you want to listen to the music from <i>Super Mario 64</i>
 in the background, you will have to drag around a Nintendo 64 and a TV
-with you...
-and also, like many games, if you pause the game, the music stops. So "use
+with you. Also, like many other games, that game will stop the music
+when you pause it. So "use
 the game itself" is not always a viable option.
 </p>
 
@@ -79,7 +86,7 @@ That's fine - that's how most recorded music works -
 but if you love game music partly because it's
 been fine-tuned to play on repeat forever,
 then only getting 1 or 2 repeats out of it is a crying shame.
-It's so much a crying shame that a community of people on YouTube has
+It's so much a crying shame, in fact, that a community of people on YouTube has
 literally emerged around hand-crafting 30-minute extensions of game music.
 <a href="https://www.youtube.com/results?search_query=30+minute+extended+mario">
     Here is a taste of the collective work put in for
@@ -90,14 +97,13 @@ literally emerged around hand-crafting 30-minute extensions of game music.
 <p>
 30 minutes is better than 3 for putting it on in the background, but it's
 still short enough that switching between music tracks can get distracting.
-(Don't believe me? 
+(I am not the only one who feels this way!
 <a href="https://www.youtube.com/results?search_query=10+hours+extended+mario">
-Here's the smaller 10-hour community on Youtube, again just for Mario.
-</a>
-You start running into issues with this solution too, though. A 30-minute video
-is a <i>big thing</i>: it takes a lot of space to store, a lot of Internet
+Here's the smaller 10-hour community on Youtube, again just for Mario.</a>)
+You start running into other issues, too. A 30-minute video
+is a big thing: it takes a lot of space to store, a lot of Internet
 traffic to download, and a lot of work to stitch together and upload in the
-first place - and those difficulties are compounded as the track gets longer,
+first place. And those difficulties are compounded as the track gets longer,
 which is why there are much fewer 10-hour tracks than 30-minute ones.
 </p>
 
@@ -105,16 +111,16 @@ which is why there are much fewer 10-hour tracks than 30-minute ones.
 These videos are also frequently reported by the game creators as 
 copyright infringment and summarily taken down. This happened a few months
 ago to BrawlBRSTMs, one of the first accounts to do it for a lot of music
-tracks, and people were <i>devastated.</i> (Now there's a whole separate issue
+tracks, and people were <i>devastated.</i> (There's also a whole separate issue
 there, which is getting the music in any form at all when game companies are
 slow to sell soundtracks, but that is another story.)
 </p>
 
 <p>
-Finally... doesn't the whole thing, like, feel weird? You download the
-soundtrack, and you listen to the music, and you know it's <i>capable</i> of
-looping seamlessly, and making it loop seamlessly feels like it could be
-done automatically, but you just sort of can't, so you have to resort to
+Finally... doesn't the whole thing feel strangely sub-optimal? You download the
+soundtrack, and you listen to the music, and you know it was made to loop
+seamlessly, and making it loop seamlessly feels like it could be
+done automatically, but you can't, so you have to resort to
 handcrafted legally questionable YouTube videos, or to carrying a PlayStation
 in your backpack or something.
 </p>
@@ -146,7 +152,7 @@ More explicitly, I wanted to make a program which does the following:
 <h3>Working with Audio Files</h3>
 <p>
 Most music, including most recorded video game music, is stored in
-.mp3 files, so that is the format I've focused on supporting
+.mp3 files, so that is the format I've focused on supporting here
 (at least initially.) Decoding .mp3 files into their raw audio data
 is not trivial, so I used a separate library called
 <a href="https://www.mpg123.de/index.shtml">
@@ -167,8 +173,8 @@ babbling brooks, to video game music - is a series of very gentle changes
 in the pressure of the air. When you hear sound, those differences in
 pressure cause your eardrum to wiggle, and your brain performs the
 translation for you.
-PCM data is basically just a digitized stream of those
-"pressure" readings collected over time. Here is a taste of raw PCM
+PCM data is essentially just a digitized stream of those
+pressure readings collected over time. Here is a taste of raw PCM
 data from one "frame" of a music track:
 </p>
 
@@ -177,15 +183,12 @@ data from one "frame" of a music track:
 </p>
 
 <p>
-This... doesn't look like music!
-</p>
-
-<p>
 To use a very rough analogy, PCM data is to speakers as 1s and 0s are
 to computer memory: this data (or the near-identical analog version of it) is
-what actually gets read directly through a microphone or fed directly through
-speakers, but it's in <i>such</i> a raw form that we
-can't really make heads or tails of it. We need it to be in a more usable
+what actually gets fed directly through speakers or read directly through
+a microphone, but it's in such a raw form that we don't get much information
+from looking at it in this state.
+We need it to be in a more usable
 format - something looking more like sheet music - and it turns out there
 is a time-honored way to accomplish that.
 </p>
@@ -204,33 +207,36 @@ src="images/looper/sheetmusic.png" alt="Super Mario Bros Sheet Music">
 
 <p>
 The notes move up and down in pitch over time, giving us a familiar melody.
-But wait - we just saw the raw
-audio, and there was nothing about pitch. There was just pressure over time.
-Where does pitch fit into that?
+If we can read the above PCM data to get the pitches of the notes being played,
+then we can get something like this sheet music.
+But if the PCM data is nothing but pressure over time, how do we obtain
+the pitch from that?
 </p>
 
 <p>
 Pitch, it turns out, is how we perceive <i>frequency</i>, and frequency is
 just how quickly the pressure varies over time. Looking at the PCM data above,
 you can see that sometimes it changes very quickly after only a few samples,
-and then sometimes it takes 20 or 30 samples to change. Within a certain range
-of frequencies, the quicker the pressure changes,
-the "higher" of a note your brain will hear.
+and then sometimes it takes 20 or 30 samples to change. The quicker the pressure changes, the "higher" of a note your brain will hear. (Within a certain range
+of frequencies, at least.)
 </p>
 
 <p>
-So, given pressure over time, how do we figure out what our frequencies are?
-The answer is a complicated but extremely influential bit of mathematics called
-the Fourier Transform. In short, the Fourier transform takes a signal like
+So, that is the conceptual relationship, but how do we actually calculate
+what our frequencies are?
+The answer is an extremely influential mathematical technique called
+the Fourier Transform. In short, the Fourier Transform takes a signal like
 ours and "decomposes" it into the frequencies that make it up. In long...
 <a href="https://www.youtu.be/spUNpyF58BY">this video from 3Blue1Brown</a>
-explains the way it actually works far, far better than I could here.
+does a great job explaining the way it actually works, and how it applies not
+just to sound but to other things as well.
 </p>
 
 <p>
-But the practical upshot is that the Fourier Transform will take the above
-PCM data and transform it into something closer to this (note that I've also
-narrowed the data to exclude a bunch of high-frequency noise we won't use):
+But the practical upshot here is that the Fourier Transform will take the above
+PCM data and transform it into something closer to the following. 
+(Note that I've also narrowed the data to exclude a bunch of 
+high-frequency noise we won't use):
 </p>
 
 <p>
@@ -239,11 +245,13 @@ narrowed the data to exclude a bunch of high-frequency noise we won't use):
 </p>
 
 <p>
+Where before we had pressure over time, now we have pressure (or, more
+precisely, the "amplitude" of our changes in pressure) over time.
 That is certainly less busy - and we can see that one frequency, around 400 Hz,
 seems to be the most prominent. This is all just information from one "frame"
 of PCM data. If we take a bunch of frames' Fourier transforms
-and stack them together to see which frequencies "light up" over time,
-we get something like this:
+and stack them together to see which frequencies dominate or "light up"
+over time, we get something like this...
 </p>
 
 <p>
@@ -257,7 +265,7 @@ main theme to <i>Super Mario Bros.</i> in there!
 But you have to squint hard, because there is some
 noise in this graph from the .mp3 compression, and from the Fourier Transform.
 We can simplify a bit by filtering out some of the weak noise
-and then just taking whichever frequency at each frame has
+and then only recording whichever frequency at each frame has
 the highest amplitude:
 </p>
 
@@ -268,7 +276,8 @@ the highest amplitude:
 
 <p>
 That gives us the same overall "shape" as before, but in a simpler form
-with less data to process. Now we can find out where it loops.
+with less data to process. Now we are in a good place
+to find out where it loops.
 </p>
 
 <h3>Finding a Loop Point</h3>
@@ -276,7 +285,7 @@ with less data to process. Now we can find out where it loops.
 <p>
 Next, now that we have a simplified set of
 "sheet music"-like points representing the dominant notes in
-our audio track, we'll basically compare it to itself to find out where it
+our audio track, we'll compare different sections of it to find out where it
 best overlaps. There are lots of options for doing this;
 the method I've found runs reasonably quickly
 (within a few seconds for typical music tracks) and obtains a good match
@@ -288,8 +297,8 @@ and/or more accurate methods are possible.
 The goal is to find two matching "windows" at separate points in the song -
 a "start" window, and an "end" window. Then, if we get a good match, we can
 splice the song together so that, when the "end" window is supposed to begin,
-the program cuts instead to the beginning of the "start" window - giving us
-the loop we want.
+the program cuts instead to the beginning of the "start" window. If the
+windows match, the cut will be imperceptible, giving us the loop we want.
 </p>
 
 <p>
@@ -311,8 +320,8 @@ NumPy's correlation coefficient function:
 <p>
 The walking itself happens mostly across possible "end" windows: beginning
 just after the "start" window, we step one frame at a time to the end of
-the file, checking for better and better matches. We also walk less
-precisely over the "start" window too, just in case the looping portion
+the file, checking for better and better matches. We also try different
+values of the "start" window, just in case the looping portion
 actually begins late in the song.
 </p>
 
@@ -320,7 +329,7 @@ actually begins late in the song.
 
 <p>
 So how does it work out?
-For this file in particular, we find an excellent match:
+For the main theme to <i>Super Mario Bros.</i>, we find an excellent match:
 </p>
 
 <p>
@@ -331,13 +340,13 @@ For this file in particular, we find an excellent match:
 <h3>Looping</h3>
 
 <p>
-Once that loop point is found - say from frame 200 to frame 3503 -
+Once a loop point is found,
 all that is left to do is play the file. The mpg123 library comes with
 a playback library, out123, that makes playback as easy as iterating
 through the frames:
 </p>
 
-{{ code_snippet('loop.py', 143, 150) | safe }}
+{{ code_snippet('loop.py', 142, 150) | safe }}
 
 <p>
 This will automatically play the file until it hits the looping point,
@@ -348,6 +357,21 @@ back to the "start" window.
 <h3>Final Thoughts</h3>
 
 <p>
+This was my first time working with audio data, and it was really fun.
+Audio is a challenging data type to work with -
+there's a lot to learn up front -
+but it's satisfying to get results out of, and you can do some
+really interesting stuff.
+</p>
+
+<p>
+Right now, this program only supports .mp3 files with 16-bit encoding.
+If you would
+love to see other audio formats, or if you find that the script is botching
+tracks that it should be able to handle, feel free to drop me a line.
+</p>
+
+<p>
 At the time of writing, this works on about 90% of the game music I throw
 at it. The other 10% is largely songs where the looping portion is
 small or nonexistent; the program needs something to grab on to. But for
@@ -355,15 +379,14 @@ music which has a nice, long looping period, it seems to do quite well.
 </p>
 
 <p>
-Right now, this only supports .mp3 files with 16-bit encoding. If you would
-love to see other audio formats, or if you find that the script is botching
-tracks that it should be able to handle, feel free to drop me a line.
+I also wondered whether or not it might somehow handle "ordinary"
+music tracks with a clear beginning and end, so I
+tried putting in <i>All Star</i> by Smash Mouth.
+It couldn't find a good loop point.
 </p>
 
 <p>
-This was my first time really working with audio data, and it was really fun.
-Audio is a challenging data type to work with,
-but a really satisfying one to get results out of.
+Some songs weren't meant to go on forever, I guess.
 </p>
 
 {% endblock %}
