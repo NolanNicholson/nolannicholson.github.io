@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Nolan Nicholson{% endblock %}
+
+{% block page_content %}
+
+<div id="clock">
+    <div id="clock-face-container">
+        <div id="clock-face-container-inner">
+            <div id="clock-face">
+                <div id="hour-hand"></div>
+                <div id="minute-hand"></div>
+                <div id="second-hand"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="scripts/clock.js"></script>
+<link rel="stylesheet" type="text/css" href="styles/clock.css">
+
+{% endblock %}
