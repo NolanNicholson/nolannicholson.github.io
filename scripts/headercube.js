@@ -16,6 +16,7 @@ var cubeRotation = 0.0;
 const clickSuperSpeed = 20.0;
 var cubeRotationSpeed = 1.0;
 var rotationSlowdown = 0.97;
+var cubeBgR = 1.0, cubeBgG = 1.0, cubeBgB = 1.0;
 
 main();
 
@@ -245,7 +246,7 @@ function initBuffers(gl) {
 //
 function drawHeaderCube(gl, programInfo, buffers) {
     //Set drawing parameters
-    gl.clearColor(1.0, 1.0, 1.0, 1.0);
+    gl.clearColor(cubeBgR, cubeBgG, cubeBgB, 1.0);
     gl.clearDepth(1.0);
     gl.enable(gl.DEPTH_TEST);
     gl.depthFunc(gl.LEQUAL);
