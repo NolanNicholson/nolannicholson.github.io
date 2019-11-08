@@ -1,7 +1,7 @@
 var hour_hand = document.getElementById("hour-hand");
 var minute_hand = document.getElementById("minute-hand");
 var second_hand = document.getElementById("second-hand");
-var clock_inner = document.getElementById("clock-face-container-inner");
+var clock_inner = document.getElementById("clock-container-inner");
 
 cubeBgR = 0.125;
 cubeBgG = 0.125;
@@ -18,8 +18,7 @@ var num_x, num_y;
 for (var i = 1; i <= 12; i++) {
     number_node = document.createElement("h1");
     number_node.textContent = i;
-    number_node.style.position = "absolute";
-    number_node.style.textAlign = "center";
+    number_node.className = "clock-number";
 
     angle = ((i - 3) / 12) * Math.PI * 2;
     num_x = parseInt((0.5 + 0.5 * Math.cos(angle)) * 85) + 5;
