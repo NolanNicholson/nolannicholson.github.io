@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-146424119-1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'UA-146424119-1');
+    </script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Nolan Nicholson</title>
+    <link rel="stylesheet" type="text/css" href="styles/highlighting.css">
+    <link rel='stylesheet' type='text/css' href='https://fonts.googleapis.com/css?family=Roboto+Slab:400,700'>
+    <link rel="stylesheet" type="text/css" href="styles/main.css">
+</head>
+
+<body>
+    <div id='name-banner'>
+        <h1 class='name'>
+            <a href="index.html">Nolan Nicholson</a>
+            
+            <!--Code for adding a spinning cube to the header-->
+            <div id="headercanvas-holder">
+                <canvas id="headercanvas"></canvas>
+            </div>
+            <script src="scripts/libraries/gl-matrix.js"></script>
+            <script src="scripts/headercube.js"></script>
+            <!--end spinning cube code-->
+        </h1>
+    </div>
+    
+
+<div id="clock">
+    <div id="clock-container-outer">
+        <div id="clock-container-inner">
+            <div id="clock-face">
+                <div id="hour-hand"></div>
+                <div id="minute-hand"></div>
+                <div id="second-hand"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="scripts/clock.js"></script>
+<link rel="stylesheet" type="text/css" href="styles/clock.css">
+
+
+    
+    <hr>
+    <p>
+        <a href="index.html">Home</a>
+    </p>
+    
+
+</body>
+</html>

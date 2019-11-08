@@ -1,7 +1,7 @@
 var hour_hand = document.getElementById("hour-hand");
 var minute_hand = document.getElementById("minute-hand");
 var second_hand = document.getElementById("second-hand");
-var clock_inner = document.getElementById("clock-container-inner");
+var clock_inner = document.getElementById("clock-face");
 
 cubeBgR = 0.125;
 cubeBgG = 0.125;
@@ -10,10 +10,6 @@ cubeBgB = 0.125;
 var d; //date object
 var hour, minute, second; //the actual time
 var h_ang, m_ang, s_ang; //the degrees of the hands (0 deg @ 12:00:00)
-
-var number_node;
-var angle;
-var num_x, num_y;
 
 //adjust the properties of the clock hands
 function set_hand_css(elem, length, back_length) {
@@ -28,6 +24,10 @@ set_hand_css(minute_hand, 40, 10);
 set_hand_css(second_hand, 45, 10);
 
 //create numbers on the clock face
+var number_node;
+var angle;
+var num_x, num_y;
+
 for (var i = 1; i <= 12; i++) {
     number_node = document.createElement("h1");
     number_node.textContent = i;
@@ -39,9 +39,6 @@ for (var i = 1; i <= 12; i++) {
 
     number_node.style.left = "" + num_x + "%";
     number_node.style.top = "" + num_y + "%";
-
-    number_node.style.color = "gray";
-    number_node.style.zIndex = "1";
 
     clock_inner.appendChild(number_node);
 }
