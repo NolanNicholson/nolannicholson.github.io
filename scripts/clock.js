@@ -15,6 +15,19 @@ var number_node;
 var angle;
 var num_x, num_y;
 
+//adjust the properties of the clock hands
+function set_hand_css(elem, length, back_length) {
+    var origin_y = length / (length + back_length) * 100;
+    elem.style.height = "" + (length + back_length) + "%";
+    elem.style.bottom = "" + (50 - back_length) + "%";
+    elem.style.transformOrigin = "50% " + origin_y + "%";
+}
+
+set_hand_css(hour_hand, 30, 10);
+set_hand_css(minute_hand, 40, 10);
+set_hand_css(second_hand, 45, 10);
+
+//create numbers on the clock face
 for (var i = 1; i <= 12; i++) {
     number_node = document.createElement("h1");
     number_node.textContent = i;

@@ -46,36 +46,27 @@ body {
 
 #hour-hand {
     position: absolute;
-    height: 30%;
     width: 4%;
     left: 48%;
     background-color: black;
     border-radius: 1em;
-    transform-origin: 50% 95%;
-    bottom: 50%;
-    z-index: 7;
+    z-index: 5;
 }
 
 #minute-hand {
     position: absolute;
-    height: 40%;
     width: 4%;
     left: 48%;
     background-color: #333;
     border-radius: 1em;
-    transform-origin: 50% 95%;
-    bottom: 50%;
     z-index: 6;
 }
 
 #second-hand {
     position: absolute;
-    height: 45%;
-    width: 2%;
-    left: 49%;
+    width: 1.5%;
+    left: 49.25%;
     background-color: rgba(255,51,77,1.0);
     border-radius: 0.5em;
-    transform-origin: 50% 98%;
-    bottom: 50%;
-    z-index: 5;
+    z-index: 7;
 }
