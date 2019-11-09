@@ -1,7 +1,7 @@
 var hour_hand = document.getElementById("hour-hand");
 var minute_hand = document.getElementById("minute-hand");
 var second_hand = document.getElementById("second-hand");
-var clock_inner = document.getElementById("clock-face");
+var clock_face = document.getElementById("clock-face");
 
 cubeBgR = 0.125;
 cubeBgG = 0.125;
@@ -24,23 +24,26 @@ set_hand_css(minute_hand, 40, 10);
 set_hand_css(second_hand, 45, 10);
 
 //create numbers on the clock face
-var number_node;
+var number_container_node, number_node;
 var angle;
 var num_x, num_y;
-
 for (var i = 1; i <= 12; i++) {
-    number_node = document.createElement("h1");
-    number_node.textContent = i;
+    number_container_node = document.createElement("div");
+    number_container_node.className = "clock-number-container";
+    clock_face.appendChild(number_container_node);
+
+    number_node = document.createElement("div");
     number_node.className = "clock-number";
+    number_node.textContent = i;
+    number_container_node.appendChild(number_node);
 
     angle = ((i - 3) / 12) * Math.PI * 2;
-    num_x = parseInt((0.5 + 0.5 * Math.cos(angle)) * 85) + 5;
-    num_y = parseInt((0.5 + 0.5 * Math.sin(angle)) * 85) - 5;
+    r_numbers = 80;
+    num_x = parseInt(50 + (0.5 * Math.cos(angle) * r_numbers));
+    num_y = parseInt(50 + (0.5 * Math.sin(angle) * r_numbers));
 
-    number_node.style.left = "" + num_x + "%";
-    number_node.style.top = "" + num_y + "%";
-
-    clock_inner.appendChild(number_node);
+    number_container_node.style.left = "" + num_x + "%";
+    number_container_node.style.top = "" + num_y + "%";
 }
 
 function update_clock() {
