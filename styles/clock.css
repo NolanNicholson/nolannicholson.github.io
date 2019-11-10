@@ -35,18 +35,17 @@ body {
 }
 
 .clock-number-container {
-    width: 80px;
-    height: 80px;
-    border-radius: 40px;
-    background-color: #dddddd;
+    width: 10%;
+    height: 10%;
     position: absolute;
     z-index: -2;
-    text-align: center;
     transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .clock-number {
-    margin: auto;
     color: gray;
     font-weight: bold;
     font-size: 300%;
