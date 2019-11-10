@@ -57,6 +57,14 @@ body {
     font-size: 300%;
 }
 
+.clock-tick {
+    width: 1%;
+    height: 3%;
+    background-color: #aaa;
+    position: absolute;
+    z-index: -3;
+}
+
 #hour-hand {
     position: absolute;
     width: 4%;
