@@ -64,12 +64,13 @@ for (var i = 0; i < 60; i++) {
     tick_node.style.transform = "translate(-50%, 0%) rotate(" + (i * 6 + 90) + "deg)";
 }
 
+var h_ang, m_ang, s_ang;
 function update_clock() {
     //fetch time information
     d = new Date();
-    hour = d.getHours() % 12;
-    minute = d.getMinutes();
-    second = d.getSeconds();
+    var hour = d.getHours() % 12;
+    var minute = d.getMinutes();
+    var second = d.getSeconds();
 
     //calculate angles
     h_ang = parseInt((hour + minute / 60) / 12 * 360);
@@ -77,10 +78,34 @@ function update_clock() {
     s_ang = parseInt(second / 60 * 360);
 
     //update clock CSS
-    hour_hand.style.transform = "rotate(" + h_ang + "deg)";
-    minute_hand.style.transform = "rotate(" + m_ang + "deg)";
-    second_hand.style.transform = "rotate(" + s_ang + "deg)";
+    if (s_wobble < 1) {
+        hour_hand.style.transform = "rotate(" + h_ang + "deg)";
+        minute_hand.style.transform = "rotate(" + m_ang + "deg)";
+        second_hand.style.transform = "rotate(" + s_ang + "deg)";
+    }
 }
+
+var h_wobble = 0, m_wobble = 0, s_wobble = 0;
+function animate_clock_wobble() {
+    h_wobble *= 0.9;
+    m_wobble *= 0.91;
+    s_wobble *= 0.92;
+
+    hour_hand.style.transform = "rotate(" + (h_ang + h_wobble) + "deg)";
+    minute_hand.style.transform = "rotate(" + (m_ang + m_wobble) + "deg)";
+    second_hand.style.transform = "rotate(" + (s_ang + s_wobble) + "deg)";
+    if (s_wobble <= -1) {
+        window.requestAnimationFrame(animate_clock_wobble);
+    }
+}
+
+const headerCubeCanvas = document.querySelector("#headercanvas");
+headerCubeCanvas.addEventListener('mousedown', function(e) {
+    s_wobble = -720;
+    m_wobble = -720;
+    h_wobble = -360;
+    animate_clock_wobble();
+});
 
 update_clock();
 setInterval(update_clock, 1000);

@@ -32,9 +32,9 @@ function main() {
         return;
     }
         
-    headerCubeCanvas.onmousedown = function(e) {
+    headerCubeCanvas.addEventListener('mousedown', function(e) {
         cubeRotationSpeed = clickSuperSpeed;
-    }
+    });
     
     //Vertex shader program
     const vsSource = `
