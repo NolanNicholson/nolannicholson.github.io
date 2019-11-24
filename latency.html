@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-146424119-1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'UA-146424119-1');
+    </script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Negative Latency</title>
+    <link rel="stylesheet" type="text/css" href="styles/highlighting.css">
+    <link rel='stylesheet' type='text/css' href='https://fonts.googleapis.com/css?family=Roboto+Slab:400,700'>
+    <link rel="stylesheet" type="text/css" href="styles/main.css">
+</head>
+
+<body>
+    <div id='name-banner'>
+        <h1 class='name'>
+            <a href="index.html">Nolan Nicholson</a>
+            
+            <!--Code for adding a spinning cube to the header-->
+            <div id="headercanvas-holder">
+                <canvas id="headercanvas"></canvas>
+            </div>
+            <script src="scripts/libraries/gl-matrix.js"></script>
+            <script src="scripts/headercube.js"></script>
+            <!--end spinning cube code-->
+        </h1>
+    </div>
+    
+
+<h2>Exploring "Negative Latency"</h2>
+
+<p>
+Google's new Stadia cloud gaming service launched
+last Tuesday, and experiences with the platform have
+been mixed. <a
+    href="https://venturebeat.com/2019/11/18/google-stadia-review-it-works-but-so-what/">Some
+    reviewers</a> have had it work almost flawlessly for them,
+but still have some questions about the limited library and
+somewhat unclear audience of the service.
+<a
+    href="https://www.youtube.com/watch?v=o6pf988yFSc">Others</a>
+have been less lucky, experiencing comical amounts of latency
+and other technical glitches.
+</p>
+
+<p>
+A lot has been said about Stadia's prospects, and about those of cloud
+gaming in general, and I won't try to retread that ground here.
+Instead, I want to focus on a particular aspect of Stadia's technical
+challenge - and one I think will be especially important to whether
+cloud gaming lives or dies: network lag.
+</p>
+
+<p>
+My pet theory is that people will tolerate lowish resolutions,
+weird compression artifacts, mediocre framerates, and all
+sorts of other issues, as long as their experience is snappy
+and responsive.
+But if it does <a
+                  href="https://youtu.be/o6pf988yFSc?t=26">this</a>,
+people will run away screaming. Even if each horribly-lagged
+frame is rendered in full 4k60 beauty, it will not matter.
+</p>
+
+<p>
+So I was pleasantly surprised when Stadia's VP of
+Engineering went out and said that Stadia would have <a
+                                              href="https://www.engadget.com/2019/10/10/google-stadia-negative-latency/">
+negative latency</a>:
+</p>
+
+<blockquote>
+    "Negative latency" is a concept by which Stadia can set up
+    a game with a buffer of predicted
+    latency between the server and player, and then use
+    various methods to undercut it. It can run the game at a
+    super-fast framerate so it can act on player inputs
+    earlier, or it can predict a player's button presses.
+</blockquote>
+
+<p>
+Time-travel-sounding buzzword aside, I was really intrigued
+by some of the techniques listed here. Could Stadia really
+predict inputs precisely enough, or run enough scenarios in
+advance, to effectively "negate" latency? If so, why were players
+experiencing severe latency issues anyway?
+To find out, I tried implementing some of these tricks myself.
+</p>
+
+<h3>First, a game</h3>
+<p>
+I thought the best way to try out some of these techniques
+would be through experimenting on an actual game - something
+simple, but with gameplay precise enough that any latency
+would be nice and frustrating.
+What I settled on was, let's say, unoriginal.
+I give you the new old smash hit, "Flapping Bird":
+</p>
+
+<div class="game-container">
+    <canvas class="demo-canvas inactive-demo"></canvas>
+    <div class="score-pane">
+        <span class="score">0</span> 🐥<br>
+        <span class="hiscore">0</span> 👑
+    </div>
+</div>
+
+<p>
+This game is running and rendering entirely on your computer:
+there is no video stream to a remote server. That means that
+for most computers, the latency here is pleasantly low. But it
+also means that it isn't representative of the kinds of
+network conditions Stadia and friends will be dealing with.
+</p>
+
+<h3>Adding some simulated latency</h3>
+
+<p>
+In order to make our game simulate
+streaming video through the internet, we have to build in some
+delays: your inputs take time to travel from your computer to
+the server, and the video data takes time to travel from the
+server back to your computer. We can simulate this travel time
+in JavaScript using event timeouts. Here is the one for
+"sending" your input data:
+</p>
+
+<!-- TODO: event timeout code snippet -->
+
+<p>
+The video data is a bit more complicated. Compressing the game
+window into video data would be way beyond the
+scope of this demonstration, so instead, we "send" a string of
+JSON containing the properties and locations of the objects in
+our game world.
+</p>
+
+<!-- TODO: video proxy JSON and timeout code snippet -->
+
+<p>
+Combine the two delays and, <i>voila</i>, we've taken a perfectly
+good game and ruined it:
+</p>
+
+<div class="game-container">
+    <canvas class="demo-canvas inactive-demo"></canvas>
+    <div class="score-pane">
+        <span class="score">0</span> 🐥<br>
+        <span class="hiscore">0</span> 👑
+    </div>
+</div>
+<div class="latency-pane">
+    <span class="latency-info">
+        Added Latency:<br>
+        <span class="latency-indicator"></span>
+    </span>
+    <span class="latency-input-container">
+        <input type="range" min="0" max="500" value="200"
+        class="latency-input">
+    </span>
+</div>
+
+<p>
+Feel free to get a feel for how different latency levels
+affect the game experience. For my part, I found 100 ms
+noticeable but bearable; 250 ms was too much to enjoy playing
+at all.
+</p>
+
+<p>
+Now that we have latency in our system, we can start trying various
+tricks to under-cut it.
+</p>
+
+<h3>Trick 1: Run-Ahead</h3>
+<p>
+The first trick mentioned was to "run the game at a super-fast framerate
+so it can act on player inputs earlier."
+</p>
+
+<div class="game-container">
+    <canvas class="demo-canvas inactive-demo"></canvas>
+    <div class="score-pane">
+        <span class="score">0</span> 🐥<br>
+        <span class="hiscore">0</span> 👑
+    </div>
+</div>
+<div class="latency-pane">
+    <span class="latency-info">
+        Added Latency:<br>
+        <span class="latency-indicator"></span>
+    </span>
+    <span class="latency-input-container">
+        <input type="range" min="0" max="500" value="200"
+        class="latency-input">
+    </span>
+</div>
+
+<script src="scripts/latency_demo.js"></script>
+<link rel="stylesheet" type="text/css" href="styles/latency_demo.css">
+
+
+    
+    <hr>
+    <p>
+        <a href="index.html">Home</a>
+    </p>
+    
+
+</body>
+</html>
