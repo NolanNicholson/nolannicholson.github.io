@@ -510,7 +510,7 @@ class GameEnvRunAhead extends GameEnvLatency {
         var frame_ms = (Date.now() - this.last_recorded_time);
         this.last_recorded_time = Date.now()
         var latency_ms = this.latency_input.value;
-        var lag_frames = Math.round(latency_ms / frame_ms / 2);
+        var lag_frames = Math.round(latency_ms / frame_ms / 4);
 
         //Runahead technique, developed by Dwedit for LibRetro:
         //1. Run one frame quickly without outputting video or sound
