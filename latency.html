@@ -53,10 +53,12 @@ and other technical glitches.
 </p>
 
 <p>
-A lot has been said about Stadia's prospects, and about those of cloud
-gaming in general, and I won't try to retread that ground here.
-Instead, I want to focus on a particular aspect of Stadia's technical
-challenge - and one I think will be especially important to whether
+People online have already said a lot about Stadia's prospects, and
+about those of cloud gaming in general, and
+I won't try to retread that ground here.
+Instead, I want to focus on a particular aspect of the technical
+challenge facing Stadia -
+one I think will be especially important to whether
 cloud gaming lives or dies: network lag.
 </p>
 
@@ -69,6 +71,11 @@ But if it does <a
                   href="https://youtu.be/o6pf988yFSc?t=26">this</a>,
 people will run away screaming. Even if each horribly-lagged
 frame is rendered in full 4k60 beauty, it will not matter.
+High latency can be such a dealbreaker that Nvidia's GeForce NOW
+streaming service, a competitor to Stadia, <a
+                                               href="https://shield.nvidia.com/support/geforce-now/system-requirements/2">will
+   literally not let you stream with a connection speed under
+   10 Mbps</a>.
 </p>
 
 <p>
@@ -88,10 +95,10 @@ negative latency</a>:
 </blockquote>
 
 <p>
-Time-travel-sounding buzzword aside, I was really intrigued
-by some of the techniques listed here. Could Stadia really
-predict inputs precisely enough, or run enough scenarios in
-advance, to effectively "negate" latency? If so, why were players
+Time-travel-sounding buzzword aside, I was intrigued
+by the techniques listed here. Could Stadia really
+predict inputs precisely enough, or run the game fast enough,
+to effectively "negate" latency? If so, why were players
 experiencing severe latency issues anyway?
 To find out, I tried implementing some of these tricks myself.
 </p>
@@ -100,7 +107,7 @@ To find out, I tried implementing some of these tricks myself.
 <p>
 I thought the best way to try out some of these techniques
 would be through experimenting on an actual game - something
-simple, but with gameplay precise enough that any latency
+simple, but with gameplay precise enough that any latency issues
 would be nice and frustrating.
 The result was, let's say, unoriginal.
 I give you the new smash hit, "Flapping Bird":
@@ -115,40 +122,56 @@ I give you the new smash hit, "Flapping Bird":
 </div>
 
 <p>
-This game is running and rendering entirely on your computer:
-there is no video stream to a remote server. That means that
-for most computers, the latency here is pleasantly low. But it
-also means that it isn't representative of the kinds of
-network conditions Stadia and friends will be dealing with.
+So we have a game to work with - but it is not representative of how
+Stadia or other cloud gaming services work, for reasons we will soon see.
 </p>
 
-<h3>Adding some simulated latency</h3>
+<h3>Simulating the Stadia situation</h3>
 
 <p>
-In order to make our game simulate
-streaming video through the internet, we have to build in some
-delays: your inputs take time to travel from your computer to
-the server, and the video data takes time to travel from the
-server back to your computer. We can simulate this travel time
-in JavaScript using event timeouts. Here is the one for
-"sending" your input data:
+Like most other video games you have played before,
+the above game is being run and rendered entirely on your own device.
+This means that the latency is nice and low,
+but it also means that I can only show you as sophisticated a
+game as your device can actually run.
 </p>
 
-<!-- TODO: event timeout code snippet -->
+<p>
+Cloud streaming flips this around by running the game on a computer
+somewhere else. Your device records your inputs and sends them to the
+game server, and the game server sends you back your video:
+</p>
 
 <p>
-The video data is a bit more complicated. Compressing the game
-window into video data would be way beyond the
-scope of this demonstration, so instead, we "send" a string of
-JSON containing the properties and locations of the objects in
-our game world.
+The benefit of this is that the game server
+can be as powerful and well-maintained as Google's
+money can buy; your device just has to be powerful enough to stream
+video, which most modern phones and TVs already are. However, your
+device and the game server now have to communicate with each other.
+And that communication adds a delay.
+</p>
+
+<p>
+This article won't attempt to actually deal with the video encoding
+and decoding steps, which are actually a whole separate challenge in
+their own right. Instead of sending encoded video data, we will
+send a JSON string that describes all of the objects to render. And,
+instead of actually sending that JSON over a network, we will just
+program in a delay before it "arrives":
 </p>
 
 <!-- TODO: video proxy JSON and timeout code snippet -->
 
 <p>
+On the other side, we will program a similar delay into "sending" our
+inputs:
+</p>
+
+<!-- TODO: event timeout code snippet -->
+
+<p>
 Combine the two delays and, <i>voila</i>, we've taken a perfectly
-good game and ruined it:
+good game and ruined it.
 </p>
 
 <div class="game-container">
@@ -170,10 +193,10 @@ good game and ruined it:
 </div>
 
 <p>
-Feel free to get a feel for how different latency levels
-affect the game experience. For my part, I found 100 ms
-noticeable but bearable; 250 ms was too much to enjoy playing
-at all.
+The slider above can be used to set the total round-trip latency for the
+game. This total latency is (arbitrarily) split evenly between your
+inputs traveling to the "server" and its video data traveling back to
+you. Try it out and see how added latency affects the experience.
 </p>
 
 <p>
@@ -184,7 +207,40 @@ tricks to under-cut it.
 <h3>Trick 1: Run-Ahead</h3>
 <p>
 The first trick mentioned was to "run the game at a super-fast framerate
-so it can act on player inputs earlier."
+so it can act on player inputs earlier." Stadia would not be the first
+system to use this sort of technique: in particular, a fellow named
+Dwedit
+<a
+            href="https://www.libretro.com/index.php/retroarch-1-7-2%E2%80%8A-%E2%80%8Aachieving-better-latency-than-original-hardware-through-new-runahead-method/">
+            implemented a method called Run-Ahead</a> for the
+RetroArch retro game emulator, and people have speculated
+that Stadia may be attempting something similar.
+Run-Ahead basically basically works like this:
+</p>
+
+<ol>
+    <li>Run the game one frame, but do not show any audio or video
+        output.</li>
+    <li>Save a state of the game at this point in time.</li>
+    <li>Run the game as many more frames forward as needed to compensate
+        for the game's lag. Again, do not show any audio or video.</li>
+    <li>Show the audio and video for the latest frame.</li>
+    <li>Load the previously saved game state, to "undo" the
+        run-ahead.</li>
+</ol>
+
+<p>
+So, if the game is expected to have 3 frames of lag, then it has to
+run the game forward 3 "speculative" frames for every 1 frame
+actually processed or displayed. In other words, the computer running
+the game has to run it up to 3 times faster than it would normally
+have to. (That said, actually rendering the video - often the most
+compute-intensive step - only has to be done once, if your game engine
+is set up the right way.)
+</p>
+
+<p>
+Here is how the run-ahead technique performs for our game:
 </p>
 
 <div class="game-container">
