@@ -333,8 +333,8 @@ one binary input!
 </p>
 
 <p>
-But all is not lost: we can simplify, at the cost of a slight loss in
-accuracy. Instead of assuming the user can press the button every
+But all is not lost: we can simplify, at the expense of some accuracy.
+Instead of assuming the user can press the button every
 single frame, let's assume they could only have pressed it once during
 our lag period. That way, we only have to handle <i>N</i> cases: one
 for if they didn't click recently, one for if they clicked at this
@@ -342,6 +342,25 @@ frame, one for if they clicked at previous frame, and so on.
 </p>
 
 <!--TODO: Discuss Id Software patent -->
+
+<div class="game-container">
+    <canvas class="demo-canvas inactive-demo"></canvas>
+    <div class="score-pane">
+        <span class="score">0</span> 🐥<br>
+        <span class="hiscore">0</span> 👑
+    </div>
+</div>
+<div class="latency-pane">
+    <span class="latency-info">
+        Added Latency:<br>
+        <span class="latency-indicator"></span>
+    </span>
+    <span class="latency-input-container">
+        <input type="range" min="0" max="500" value="200"
+        class="latency-input">
+    </span>
+</div>
+
 
 <script src="scripts/latency_demo.js"></script>
 <link rel="stylesheet" type="text/css" href="styles/latency_demo.css">

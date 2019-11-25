@@ -352,6 +352,23 @@ class GameEnvironment {
         }
     }
 
+    save_state() {
+        var packet = new GameStatePacket(
+            this.collided, this.score, this.hiscore,
+            this.pipe_queue, this.bird);
+        return packet
+    }
+
+    load_state(packet) {
+        var data = JSON.parse(packet.data);
+        this.collided = data.collided;
+        this.score = data.score;
+        this.hiscore = data.hiscore;
+        Object.assign(this.pipe_queue, data.pipe_queue);
+        Object.assign(this.bird, data.bird);
+    }
+
+
     render_latest_state() {
         this.renderGameState(
             this.collided,
@@ -483,26 +500,11 @@ class GameEnvLatency extends GameEnvironment {
     }
 }
 
+
 class GameEnvRunAhead extends GameEnvLatency {
     constructor(cnv, latency_input) {
         super(cnv, latency_input);
         this.last_recorded_time = Date.now()
-    }
-
-    save_state() {
-        var packet = new GameStatePacket(
-            this.collided, this.score, this.hiscore,
-            this.pipe_queue, this.bird);
-        return packet
-    }
-
-    load_state(packet) {
-        var data = JSON.parse(packet.data);
-        this.collided = data.collided;
-        this.score = data.score;
-        this.hiscore = data.hiscore;
-        Object.assign(this.pipe_queue, data.pipe_queue);
-        Object.assign(this.bird, data.bird);
     }
 
     update() {
@@ -521,7 +523,7 @@ class GameEnvRunAhead extends GameEnvLatency {
 
         //3. Run N-1 frames quickly without outputting video or sound
         for (var i = 0; i < lag_frames - 1; i++) {
-            super.update(false)
+            super.update(false);
         }
 
         //4. Run one frame with outputting video and sound
@@ -533,11 +535,61 @@ class GameEnvRunAhead extends GameEnvLatency {
 }
 
 
+class GameEnvSpeculative extends GameEnvLatency {
+    constructor(cnv, latency_input) {
+        super(cnv, latency_input);
+        this.last_recorded_time = Date.now()
+        this.frames_since_input = 0;
+        this.packets = [];
+    }
+
+    click() {
+        this.frames_since_input = 0;
+        super.click();
+    }
+
+    update() {
+        //Determine number of frames of latency to counteract
+        var frame_ms = (Date.now() - this.last_recorded_time);
+        this.last_recorded_time = Date.now()
+        var latency_ms = this.latency_input.value;
+        var lag_frames = Math.round(latency_ms / frame_ms);
+
+        super.update(false);
+        var send_packet = true;
+        if (send_packet) {
+            //encode and "send" "video" data
+            var self = this;
+            var latency = this.latency_input.value;
+            var packet = new GameStatePacket(
+                this.collided, this.score, this.hiscore,
+                this.pipe_queue, this.bird);
+            window.setTimeout(function() {
+                self.mostRecentPacket = packet;
+            }, latency / 2);
+        }
+        this.frames_since_input += 1;
+    }
+
+    render_latest_state() {
+        //decode "incoming" packet
+        var packet_data = JSON.parse(this.mostRecentPacket.data);
+
+        //render based on the contents of the packet
+        this.renderGameState(
+            packet_data.collided,
+            packet_data.score,
+            packet_data.hiscore,
+            packet_data.pipe_queue,
+            packet_data.bird
+        );
+    }
+}
+
+
 var game_envs = [];
 for (var i = 0; i < demo_canvases.length; i++) {
     var cnv = demo_canvases[i];
-    cnv.width = cnv.clientWidth;
-    cnv.height = cnv.clientHeight;
 
     switch(i) {
         case 0:
@@ -553,6 +605,10 @@ for (var i = 0; i < demo_canvases.length; i++) {
             var env = new GameEnvRunAhead(
                 cnv, latency_inputs[i-1]);
             break;
+        case 3:
+            var env = new GameEnvSpeculative(
+                cnv, latency_inputs[i-1]);
+            break;
     }
 
     game_envs.push(env);
@@ -560,6 +616,7 @@ for (var i = 0; i < demo_canvases.length; i++) {
     env.hiscore_elem = hiscore_elems[i];
     env.render();
 }
+
 
 function resize_canvases() {
     for (var i = 0; i < demo_canvases.length; i++) {
@@ -570,5 +627,6 @@ function resize_canvases() {
         env.render();
     }
 }
+
 window.addEventListener('resize', resize_canvases);
 window.addEventListener('load', resize_canvases);
