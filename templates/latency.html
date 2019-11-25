@@ -108,36 +108,38 @@ somewhere else. Your device records your inputs and sends them to the
 game server, and the game server sends you back your video:
 </p>
 
+<img class="figure" src="images/latency/client_server.png"></img>
+
 <p>
 The benefit of this is that the game server
 can be as powerful and well-maintained as Google's
-money can buy; your device just has to be powerful enough to stream
-video, which most modern phones and TVs already are. However, your
+money can buy. Your device just has to be powerful enough to stream
+video, which most modern phones and TVs can do just fine. However, your
 device and the game server now have to communicate with each other.
 And that communication adds a delay.
 </p>
 
 <p>
 This article won't attempt to actually deal with the video encoding
-and decoding steps, which are actually a whole separate challenge in
+and decoding steps, which are a whole separate challenge in
 their own right. Instead of sending encoded video data, we will
-send a JSON string that describes all of the objects to render. And,
-instead of actually sending that JSON over a network, we will just
-program in a delay before it "arrives":
+send a JSON string that describes each of the objects to render. 
+The client will still handle the rendering. Also,
+instead of actually sending that JSON over a real network, we will just
+schedule in a delay before it "arrives." So our setup will be a little
+bit different:
 </p>
+
+<img class="figure" src="images/latency/client_server_2.png"></img>
 
 <!-- TODO: video proxy JSON and timeout code snippet -->
 
 <p>
 On the other side, we will program a similar delay into "sending" our
-inputs:
-</p>
-
-<!-- TODO: event timeout code snippet -->
-
-<p>
+inputs. So there are two separate delays: one for our inputs to travel
+to the server, and one for the video data to travel back.
 Combine the two delays and, <i>voila</i>, we've taken a perfectly
-good game and ruined it.
+good game and ruined it:
 </p>
 
 <div class="game-container">
@@ -159,15 +161,15 @@ good game and ruined it.
 </div>
 
 <p>
-The slider above can be used to set the total round-trip latency for the
+The slider above sets the total round-trip latency for the
 game. This total latency is (arbitrarily) split evenly between your
-inputs traveling to the "server" and its video data traveling back to
-you. Try it out and see how added latency affects the experience.
+inputs traveling to the "server" and the video data traveling back to
+you. Try it out and see how added latency affects the game experience.
 </p>
 
 <p>
-Now that we have latency in our system, we can start trying various
-tricks to under-cut it.
+Now that we have latency in our system, we can start trying our
+various tricks for undercutting it.
 </p>
 
 <h3>Trick 1: Run-Ahead</h3>
