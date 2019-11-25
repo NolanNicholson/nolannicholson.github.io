@@ -19,7 +19,7 @@ and other technical glitches.
 </p>
 
 <p>
-People online have already said a lot about Stadia's prospects, and
+People have already said a lot about Stadia's prospects, and
 about those of cloud gaming in general, and
 I won't try to retread that ground here.
 Instead, I want to focus on a particular aspect of the technical
@@ -208,7 +208,8 @@ is set up the right way.)
 </p>
 
 <p>
-Here is how the run-ahead technique performs for our game:
+Let's see what that extra processing gets us.
+Here is a rough implementation of the run-ahead technique for our game:
 </p>
 
 <div class="game-container">
@@ -228,6 +229,85 @@ Here is how the run-ahead technique performs for our game:
         class="latency-input">
     </span>
 </div>
+
+<p>
+My subjective experience is that this technique can sort of make
+low latencies (say, up to 200 ms) feel even lower, but that
+it causes unbearable jittering at higher latencies.
+In particular, tapping the bird causes it to "snap" upward instead
+of hopping smoothly.
+</p>
+
+<p>
+Why does this happen?
+There is one big difference between using Run-Ahead to manage the kind
+of latency that it was developed for (i.e., RetroArch games), and
+using it to manage our cloud gaming setup
+In RetroArch, most of the lag happens <em>after</em>
+inputs have already been received.
+In our case, the inputs themselves have to travel to the server, so
+there is also some latency in even receiving them.
+That means a few (bad) things for Run-Ahead here:
+</p>
+
+<ol>
+    <li>
+        RetroArch can conceivably use Run-Ahead to get the observable
+        latency down to less than 1 frame of gameplay. We can only get it
+        down to however long it takes the inputs to travel to the
+        server. For our simplified case, where the latency is split evenly
+        between sending inputs and receiving the video, the best this
+        technique can do is to cut the latency in half.
+    </li>
+    <li>
+        Unlike the games for which Run-Ahead was designed, our server
+        has 0 frames of intrinsic lag between receiving the input and
+        seeing its effects. That means that, if we run 3 frames ahead,
+        we will actually just skip the first 3 frames of our input
+        actions - hence the bird "snapping" upward.
+    </li>
+</ol>
+
+<p>
+In other words, Run-Ahead alone won't solve our problem, since we
+cannot wait for the inputs to travel to the server. What else can
+we do?
+</p>
+
+<h3>Sending Speculative Video to the Client</h3>
+
+<p>
+So we know that we can only get our game video from the server, and we
+know that we don't want to wait for our inputs to reach the server
+first. How could we see the effects of our inputs without waiting for
+the server? We could just have the server preemptively send us
+video data for all possible cases, and have the client select the
+appropriate one for the user's input.
+</p>
+
+<p>
+For our little game, if there is only one frame of latency, you only
+need two cases: a case for if the user clicks, and a case for if they
+don't. If there are two frames of latency, you have to send four cases:
+two cases for the current frame, times two cases for the previous one.
+Extending this, we have to send 2<sup><i>N</i></sup> cases, where
+<i>N</i> is the number of frames of lag. If you are playing a 60 fps
+game with 200 ms latency, that means you will have about 12 frames of
+latency, which will require that the server pre-emptively send you
+4,096 possible cases to select from. And that is for a game with just
+one binary input!
+</p>
+
+<p>
+But all is not lost: we can simplify, at the expense of some accuracy.
+Instead of assuming the user can press the button every
+single frame, let's assume they could only have pressed it once during
+our lag period. That way, we only have to handle <i>N</i> cases: one
+for if they didn't click recently, one for if they clicked at this
+frame, one for if they clicked at previous frame, and so on.
+</p>
+
+<!--TODO: Discuss Id Software patent -->
 
 <script src="scripts/latency_demo.js"></script>
 <link rel="stylesheet" type="text/css" href="styles/latency_demo.css">
