@@ -540,7 +540,9 @@ class GameEnvSpeculative extends GameEnvLatency {
         super(cnv, latency_input);
         this.last_recorded_time = Date.now()
         this.frames_since_input = 0;
-        this.packets = [];
+        this.packets = [this.save_state()];
+        this.null_packet = this.save_state();
+        this.older_packet = this.save_state();
     }
 
     click() {
@@ -549,31 +551,49 @@ class GameEnvSpeculative extends GameEnvLatency {
     }
 
     update() {
+        //Update normally (for consistent server-side logic)
+        super.update(false);
+
         //Determine number of frames of latency to counteract
         var frame_ms = (Date.now() - this.last_recorded_time);
         this.last_recorded_time = Date.now()
         var latency_ms = this.latency_input.value;
         var lag_frames = Math.round(latency_ms / frame_ms);
 
-        super.update(false);
-        var send_packet = true;
-        if (send_packet) {
-            //encode and "send" "video" data
-            var self = this;
-            var latency = this.latency_input.value;
-            var packet = new GameStatePacket(
-                this.collided, this.score, this.hiscore,
-                this.pipe_queue, this.bird);
-            window.setTimeout(function() {
-                self.mostRecentPacket = packet;
-            }, latency / 2);
+        //encode and "send" "video" data
+        var self = this;
+        var latency = this.latency_input.value;
+
+        //Generate speculative packets
+        var reference_packet = this.save_state();
+        /*
+        var packets = [];
+        for (var i = 0; i < lag_frames; i++) {
+            this.load_state(reference_packet);
+            for (var j = 0; j < lag_frames; j++) {
+                super.update(false);
+            }
+            packets.push(this.save_state());
         }
-        this.frames_since_input += 1;
+        */
+
+        //Null packet: if there were no inputs given recently
+        for (var i = 0; i < lag_frames; i++) {
+            super.update(false);
+        }
+        var null_packet = this.save_state();
+        this.load_state(reference_packet);
+
+        window.setTimeout(function() {
+            //self.packets = packets;
+            self.null_packet = null_packet;
+        }, latency / 2);
     }
 
     render_latest_state() {
         //decode "incoming" packet
-        var packet_data = JSON.parse(this.mostRecentPacket.data);
+        var selected_packet = this.null_packet;
+        var packet_data = JSON.parse(selected_packet.data);
 
         //render based on the contents of the packet
         this.renderGameState(
