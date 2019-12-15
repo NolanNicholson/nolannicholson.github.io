@@ -395,8 +395,8 @@ actually begins late in the song.
 121
 122
 123</pre></div></td><td class="code"><div class="highlight"><pre><span></span>        <span class="n">max_corr</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="n">best_start</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="n">best_end</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">best_start</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">best_end</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="k">for</span> <span class="n">start</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_freq</span><span class="p">)</span> <span class="o">-</span> <span class="n">test_len</span><span class="p">,</span>
                 <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_freq</span><span class="p">)</span> <span class="o">/</span> <span class="mi">10</span><span class="p">)):</span>
@@ -442,13 +442,13 @@ through the frames:
 149
 150</pre></div></td><td class="code"><div class="highlight"><pre><span></span>        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+            <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
                 <span class="n">out</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frames</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
                 <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
                 <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="n">loop_offset</span><span class="p">:</span>
                     <span class="n">i</span> <span class="o">=</span> <span class="n">start_offset</span>
         <span class="k">except</span> <span class="ne">KeyboardInterrupt</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">()</span> <span class="c1"># so that the program ends on a newline</span>
+            <span class="nb">print</span><span class="p">()</span> <span class="c1"># so that the program ends on a newline</span>
 </pre></div>
 </td></tr></table>
 </div>

@@ -261,6 +261,7 @@ class GameEnvironment {
 
     reset() {
         this.collided = false;
+        this.handled_collision = false;
         this.shake = 0;
         this.bird.y_pct = 50;
         this.score = 0;
@@ -299,13 +300,14 @@ class GameEnvironment {
         this.bird.update();
 
         this.collided = this.collisionCheck();
-        var env = this;
-        if (this.collided) {
+        var self = this;
+        if (this.collided && !this.handled_collision) {
+            this.handled_collision = true;
             const INIT_SHAKE = 10;
             this.shake = INIT_SHAKE;
             window.setTimeout(function() {
-                env.active = false;
-                env.render();
+                self.active = false;
+                self.render();
             }, 500);
         } else {
             this.score++;
@@ -534,15 +536,16 @@ class GameEnvRunAhead extends GameEnvLatency {
     }
 }
 
-
 class GameEnvSpeculative extends GameEnvLatency {
     constructor(cnv, latency_input) {
         super(cnv, latency_input);
         this.last_recorded_time = Date.now()
         this.frames_since_input = 0;
-        this.packets = [this.save_state()];
         this.null_packet = this.save_state();
         this.older_packet = this.save_state();
+
+        // list of speculative packets
+        this.received_packets = [];
     }
 
     click() {
@@ -551,8 +554,10 @@ class GameEnvSpeculative extends GameEnvLatency {
     }
 
     update() {
-        //Update normally (for consistent server-side logic)
+        //Update normally for consistent server-side logic,
+        //but don't send a video packet
         super.update(false);
+        this.frames_since_input++;
 
         //Determine number of frames of latency to counteract
         var frame_ms = (Date.now() - this.last_recorded_time);
@@ -560,39 +565,50 @@ class GameEnvSpeculative extends GameEnvLatency {
         var latency_ms = this.latency_input.value;
         var lag_frames = Math.round(latency_ms / frame_ms);
 
-        //encode and "send" "video" data
-        var self = this;
-        var latency = this.latency_input.value;
-
-        //Generate speculative packets
+        //Generate speculative packets:
+        // index 0: user just clicked
+        // index 1: user clicked 1 frame ago
+        // etc. for N possible frames
         var reference_packet = this.save_state();
-        /*
         var packets = [];
         for (var i = 0; i < lag_frames; i++) {
             this.load_state(reference_packet);
             for (var j = 0; j < lag_frames; j++) {
+                if (j == i) {
+                    this.click()
+                }
                 super.update(false);
             }
             packets.push(this.save_state());
         }
-        */
 
         //Null packet: if there were no inputs given recently
+        this.load_state(reference_packet);
         for (var i = 0; i < lag_frames; i++) {
             super.update(false);
         }
         var null_packet = this.save_state();
         this.load_state(reference_packet);
 
+        //encode and "send" "video" data
+        var self = this;
         window.setTimeout(function() {
             //self.packets = packets;
-            self.null_packet = null_packet;
-        }, latency / 2);
+            self.received_packets = packets
+            self.received_null_packet = null_packet;
+        }, latency_ms / 2);
     }
 
     render_latest_state() {
         //decode "incoming" packet
-        var selected_packet = this.null_packet;
+        var selected_packet;
+        if (this.frames_since_input >= this.received_packets.length) {
+            selected_packet = this.received_null_packet;
+        } else {
+            selected_packet =
+                this.received_packets[this.frames_since_input];
+        }
+        var selected_packet = this.save_state();
         var packet_data = JSON.parse(selected_packet.data);
 
         //render based on the contents of the packet
