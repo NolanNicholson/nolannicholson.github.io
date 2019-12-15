@@ -301,14 +301,16 @@ class GameEnvironment {
 
         this.collided = this.collisionCheck();
         var self = this;
-        if (this.collided && !this.handled_collision) {
-            this.handled_collision = true;
-            const INIT_SHAKE = 10;
-            this.shake = INIT_SHAKE;
-            window.setTimeout(function() {
-                self.active = false;
-                self.render();
-            }, 500);
+        if (this.collided) {
+            if (!this.handled_collision) {
+                this.handled_collision = true;
+                const INIT_SHAKE = 10;
+                this.shake = INIT_SHAKE;
+                window.setTimeout(function() {
+                    self.active = false;
+                    self.render();
+                }, 500);
+            }
         } else {
             this.score++;
             if (this.score > this.hiscore) {
@@ -541,23 +543,25 @@ class GameEnvSpeculative extends GameEnvLatency {
         super(cnv, latency_input);
         this.last_recorded_time = Date.now()
         this.frames_since_input = 0;
-        this.null_packet = this.save_state();
-        this.older_packet = this.save_state();
 
         // list of speculative packets
-        this.received_packets = [];
+        this.received_packets = [this.save_state()]
+        this.received_null_packet = this.save_state();
     }
 
     click() {
-        this.frames_since_input = 0;
         super.click();
+        this.frames_since_input = 0;
     }
 
     update() {
         //Update normally for consistent server-side logic,
-        //but don't send a video packet
+        //but don't send a video packet yet -
+        //instead, save this state packet as the reference
+        //for generating speculative packets
         super.update(false);
         this.frames_since_input++;
+        var reference_packet = this.save_state();
 
         //Determine number of frames of latency to counteract
         var frame_ms = (Date.now() - this.last_recorded_time);
@@ -565,30 +569,29 @@ class GameEnvSpeculative extends GameEnvLatency {
         var latency_ms = this.latency_input.value;
         var lag_frames = Math.round(latency_ms / frame_ms);
 
-        //Generate speculative packets:
-        // index 0: user just clicked
-        // index 1: user clicked 1 frame ago
-        // etc. for N possible frames
-        var reference_packet = this.save_state();
-        var packets = [];
-        for (var i = 0; i < lag_frames; i++) {
-            this.load_state(reference_packet);
-            for (var j = 0; j < lag_frames; j++) {
-                if (j == i) {
-                    this.click()
-                }
-                super.update(false);
-            }
-            packets.push(this.save_state());
-        }
-
         //Null packet: if there were no inputs given recently
-        this.load_state(reference_packet);
         for (var i = 0; i < lag_frames; i++) {
             super.update(false);
         }
         var null_packet = this.save_state();
         this.load_state(reference_packet);
+
+        //Generate speculative packets:
+        // index 0: user just clicked
+        // index 1: user clicked 1 frame ago
+        // etc. for N possible frames
+        var packets = [];
+        var num_packets = lag_frames + 1;
+        for (var i = 0; i < num_packets; i++) {
+            for (var j = 0; j < num_packets; j++) {
+                if (j == num_packets - 1 - i) {
+                    this.bird.hop();
+                }
+                super.update(false);
+            }
+            packets.push(this.save_state());
+            this.load_state(reference_packet);
+        }
 
         //encode and "send" "video" data
         var self = this;
@@ -600,15 +603,15 @@ class GameEnvSpeculative extends GameEnvLatency {
     }
 
     render_latest_state() {
-        //decode "incoming" packet
+        //select and decode "incoming" packet
         var selected_packet;
-        if (this.frames_since_input >= this.received_packets.length) {
-            selected_packet = this.received_null_packet;
-        } else {
+        if (this.frames_since_input <= this.received_packets.length - 1) {
             selected_packet =
                 this.received_packets[this.frames_since_input];
         }
-        var selected_packet = this.save_state();
+        else {
+            selected_packet = this.received_null_packet;
+        }
         var packet_data = JSON.parse(selected_packet.data);
 
         //render based on the contents of the packet
