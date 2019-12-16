@@ -5,32 +5,28 @@
 <h2>Exploring "Negative Latency"</h2>
 
 <p>
-Google's new Stadia cloud gaming service launched
-recently, and experiences with the platform have
+Google recently launched a service called Stadia that lets you play
+video games through the cloud, and experiences with the platform have
 been mixed.
-</p>
-
-<p>
-There has already been
-<a href="https://twitter.com/mcclure111/status/1196557401710837762">a lot</a>
-of good discussion about Stadia's prospects, and
-about those of cloud gaming in general.
-I won't try to retread that ground here.
-Instead, I want to focus on a particular aspect of the technical
-challenge facing Stadia -
-one I think will be especially important to whether
-cloud gaming lives or dies: network lag.
-</p>
-
-<p>
 <a href="https://venturebeat.com/2019/11/18/google-stadia-review-it-works-but-so-what/">Some
-    reviewers</a> have had it work almost flawlessly for them,
-but still have some questions about the limited library and
-somewhat unclear audience of the service.
+    reviewers of Stadia</a> have had the service work almost
+flawlessly for them.
 <a
     href="https://www.youtube.com/watch?v=o6pf988yFSc">Others</a>
 have been less lucky, experiencing comical amounts of latency
 and other technical glitches.
+</p>
+
+<p>
+There has already been a lot of
+<a href="https://twitter.com/mcclure111/status/1196557401710837762">
+    good discussion</a> about Stadia's general business prospects, and
+about those of cloud gaming in general,
+but I wanted to focus on a particular aspect of the technical
+challenge facing Stadia -
+one I think will be especially important to whether
+cloud gaming lives or dies: network lag.
+</p>
 
 <p>
 My pet theory is that people will tolerate lowish resolutions,
@@ -39,55 +35,48 @@ sorts of other issues, as long as their experience is snappy
 and responsive.
 But if it does <a
                   href="https://youtu.be/o6pf988yFSc?t=26">this</a>,
-people will run away screaming. Even if each horribly-lagged
-frame is rendered in full 4k60 beauty, it will not matter.
-High latency can be such a dealbreaker that Nvidia's GeForce NOW
-streaming service, a competitor to Stadia, <a
-                                               href="https://shield.nvidia.com/support/geforce-now/system-requirements/2">will
-   literally not let you stream with a connection speed under
-   10 Mbps</a>.
+people will run away screaming.
 </p>
 
 <p>
-So I was pleasantly surprised when Stadia's VP of
-Engineering went out and said that Stadia would have <a
+So it was quite promising to me when Stadia's VP of Engineering
+proclaimed that the service would have <a
                                               href="https://www.engadget.com/2019/10/10/google-stadia-negative-latency/">
-negative latency</a>. Although the buzzword itself implies some kind
+negative latency</a>. The buzzword itself implied some kind
 of physically impossible time travel,
-the real explanation is more modest:
+but the real explanation was more modest:
 </p>
 
 <blockquote>
-    "Negative latency" is a concept by which Stadia can set up
+    "'Negative latency' is a concept by which Stadia can set up
     a game with a buffer of predicted
     latency between the server and player, and then use
     various methods to undercut it. It can run the game at a
     super-fast framerate so it can act on player inputs
-    earlier, or it can predict a player's button presses.
+    earlier, or it can predict a player's button presses."
 </blockquote>
 
 <p>
-I was intrigued
-by the techniques listed here. Could Stadia really
+I was intrigued. Could Stadia really
 predict inputs precisely enough, or run the game fast enough,
 to effectively "negate" latency? If so, why were players
 experiencing severe latency issues anyway?
 </p>
 
 <p>
-To find out, I tried implementing some of these tricks myself.
-My results, at least so far, have been mixed - and point less to any
+To find out, I tried implementing some of these techniques myself.
+My results, at least so far, pointed less to any perfect
 "solution" of the problem and more to a bunch of tricks that only
 sort of work.
 </p>
 
 <h3>First, a game</h3>
 <p>
-I thought the best way to try out some of these techniques
+I thought the best way to test these techniques
 would be through experimenting on an actual game - something
-simple, but with gameplay precise enough that any latency issues
-would be nice and frustrating. The result was... unoriginal.
-I give you "Flapping Bird":
+simple, but with precise enough gameplay that any latency issues
+would be nice and frustrating. Meet our highly unoriginal test game,
+"Flapping Bird":
 </p>
 
 <div class="game-container">
@@ -126,37 +115,32 @@ game server, and the game server sends you back your video:
 <p>
 The benefit of this is that the game server
 can be as powerful and well-maintained as Google's
-money can buy. Your device just has to be powerful enough to stream
+money can buy. Your device only has to be powerful enough to stream
 video, which most modern phones and TVs can do just fine. However, your
-device and the game server now have to communicate with each other.
-And that communication adds a delay.
+device and the game server now have to communicate with each other,
+and that communication adds a delay.
 </p>
 
 <p>
-This article won't attempt to actually deal with the video encoding
-and decoding steps, which are a whole separate challenge in
-their own right. Instead of sending encoded video data, we will
-send a JSON string that describes each of the objects to render. 
-The client will still handle the rendering. Also,
+This article won't attempt to actually deal with how the video itself
+is encoded and sent, which is a whole separate challenge.
+Instead, our "video" data will just be some text:
+namely, a JSON string that describes each of the objects to be rendered. Also,
 instead of actually sending that JSON over a real network, we will just
-schedule in a delay before it "arrives." So our setup will be a little
-bit different:
+schedule in a delay before it "arrives."
+</p>
+
+<p>
+On the other side, we will program a similar delay into "sending" our
+inputs. So there will be two separate delays: one for our inputs to travel
+to the server, and one for the video data to travel back.
+Putting it all together, our setup will look like this:
 </p>
 
 <img class="figure" src="images/latency/client_server_2.png"></img>
 
 <p>
-But the result will be that the "video" data generated by the game has
-the same kind of latency in getting to your screen as we would expect
-Stadia to have.
-On the other side, we will program a similar delay into "sending" our
-inputs. So there are two separate delays: one for our inputs to travel
-to the server, and one for the video data to travel back.
-</p>
-
-<p>
-Combine the two delays and, <i>voila</i>, we've taken a perfectly
-good game and ruined it:
+And here is the result:
 </p>
 
 <div class="game-container">
@@ -178,10 +162,11 @@ good game and ruined it:
 </div>
 
 <p>
-The slider above sets the total round-trip latency for the
-game. This total latency is (arbitrarily) split evenly between your
-inputs traveling to the "server" and the video data traveling back to
-you. Try it out and see how added latency affects the game experience.
+The slider sets the total round-trip latency for the
+game. This total latency is (arbitrarily) split half-and-half between
+the inputs traveling to the "server"
+and the "video" data traveling back to you.
+Try it out, and see how added latency affects the game experience.
 </p>
 
 <p>
@@ -219,14 +204,13 @@ So, if the game is expected to have 3 frames of lag, then it has to
 run the game forward 3 "speculative" frames for every 1 frame
 actually processed or displayed. In other words, the computer running
 the game has to run it up to 3 times faster than it would normally
-have to. (That said, actually rendering the video - often the most
-compute-intensive step - only has to be done once, if your game engine
-is set up the right way.)
+have to. (That said, actually rendering the video - usually the most
+compute-intensive step - only has to be done once.)
 </p>
 
 <p>
 Let's see what that extra processing gets us.
-Here is a rough implementation of the run-ahead technique for our game:
+Here is a rough implementation of the Run-Ahead technique for our game:
 </p>
 
 <div class="game-container">
@@ -249,23 +233,24 @@ Here is a rough implementation of the run-ahead technique for our game:
 
 <p>
 My subjective experience is that this technique can sort of make
-low latencies (say, up to 200 ms) feel even lower, but that
+low latencies (say, up to 200 ms) feel more responsive, but that
 it causes unbearable jittering at higher latencies.
 In particular, tapping the bird causes it to "snap" upward instead
 of hopping smoothly.
 </p>
 
 <p>
-Why do we get this upward "snap"?
-There is one big difference between using Run-Ahead to manage the kind
-of latency that it was developed for (i.e., RetroArch games), and
+Why do we get this upward "snap"? It turns out that
+there is one big difference between using Run-Ahead to manage the kind
+of latency that it was developed for (i.e., emulating retro games), and
 using it to manage our cloud gaming setup here.
 In RetroArch, most of the lag happens <em>after</em>
 the emulator has already received the inputs. The emulator is then
 just waiting for the game to proceed - which is why it makes sense
 to speed the game up.
-In our case, the inputs themselves have to travel to the server, so
-there is also some latency before the system receives them.
+In the case of cloud gaming, the inputs themselves have to travel to
+the server, so there is also some latency before the system even
+receives them.
 That means a few (bad) things for Run-Ahead here:
 </p>
 
@@ -346,15 +331,23 @@ frame, one for if they clicked at the previous frame, and so on.
 
 <p>
 This is an extremely rough proof of concept, and making it really
-useful would take a lot more fine adjustments than I've made here,
-but it shows that you can begin to compensate for
-relatively high latencies with this technique. The downside, though,
-is that even with our shortcut we are still transmitting a large
-amount of "video" data: for 200 ms latency at 60 fps, we still need to
-send 12 versions of each frame.
+usable would take a lot more work than I've done here,
+but it shows - even if just for fleeting moments
+- that you can begin to compensate for even
+relatively high latencies with this technique.
 </p>
 
-<h4>What about multiple inputs?</h4>
+<p>
+The downside, though,
+is that even with our shortcut we are still processing and
+transmitting a large amount of data:
+for 200 ms latency at 60 fps, we are sending
+12 versions of each video frame. Lots of home internet
+connections can stream an HD video just fine; fewer can stream 12 at
+once.
+</p>
+
+<h4>Handling Multiple Inputs</h4>
 
 <p>
 All of the above is for a very simple game with just one binary input:
@@ -375,9 +368,10 @@ inputs, then the client can just add up the motion vectors.
 
 <p>
 This could work - it seems especially well-suited to first-person 3D
-games - but adding up the motion vectors to produce the correct video
-is more work for the client (your phone or computer) to do, which
-starts to erode at the advantages of cloud gaming.
+games - but compositing the correct video from the motion vectors
+adds work that the client (your phone or computer) has to do. The more
+complex that composition, the harder the demands on the client - which
+could begin to erode the benefits of cloud gaming in the first place.
 </p>
 
 <h3>Predicting User Inputs</h3>
@@ -400,22 +394,20 @@ you would, but disagreement is no problem as long as the car behaves
 </p>
 
 <p>
-Now, imagine that you and the computer are both trying to drive at the
-same time, and the car is constantly juggling between your inputs and
-the computer's. Most of the time, you will both be doing the same
-things. But occasionally, you and the computer will disagree on little
-details, like
-the exact timing and style of your movements. When that happens, the
-car will likely get the computer's input first (computers are fast!)
-and begin acting on it, but it will then switch a few milliseconds
-later to your input (you're the one in charge!) The result: every
-time you disagree, the car will jitter a little bit.
+Now, imagine that you and the computer are both trying to drive the
+same car at the same time. Most of the time, you might agree,
+but occasionally, you and the computer will disagree on little
+details, like the exact timing and style of your movements.
+When that happens, the car will "jitter", first acting on the computer's
+faster input, and then reacting to your input when it comes in later.
+The car will constantly be juggling between your inputs and
+the computer's.
 </p>
 
 <p>
-For a (horrible) example, here is a version where the server predicts
-that if your last two hops were 300 ms apart, then you will hop again
-300 ms later:
+For a (horrible) example, here is a version where the server
+"predicts" your next click based on the interval between your last two
+clicks:
 </p>
 
 <div class="game-container">
@@ -437,14 +429,25 @@ that if your last two hops were 300 ms apart, then you will hop again
 </div>
 
 <p>
-One other interesting option would be to combine input
+This example illustrates the worst possible outcome of input
+prediction: when the server predicts wrongly, even a little, it feels
+like <em>you are no longer the one playing the game.</em>
+The better the
+prediction algorithm, the less this problem will appear - but as long as
+the server can make inputs directly on your behalf, it will happen
+occasionally.
+</p>
+
+<p>
+But one other interesting option might be to combine input
 prediction with the "speculative video" technique we explored above.
 If you can predict that a
 user's input is 99.999% likely to be one of 5 cases, then you only
 have 5 possible frames of video to send over, drastically
 reducing the amount of data you have to send. In the cases where the
 inputs can't be predicted, or the prediction is wrong, you would have
-some latency or jitter, but most of the time it would be great.
+some latency or jitter, but the server would never actually be making
+inputs "for" you.
 </p>
 
 <h3>So now what?</h3>
@@ -453,11 +456,29 @@ some latency or jitter, but most of the time it would be great.
 We've seen a couple of techniques that people have speculated might be
 used to fight latency in cloud gaming. They are not without their
 drawbacks: some help manage the latency but add a lot of computing and
-networking cost, and some create a gameplay experience even worse than the
-latency itself was.
+networking cost, and some potentially create a gameplay experience
+even worse than the latency itself was.
 </p>
 
 <p>
+While I expect the teams behind Stadia, Project xCloud, GeForce NOW,
+and the other cloud gaming services have worked much harder on
+techniques like these than I have, my biggest feeling right now is
+that trying to "negate" existing latency is probably less helpful
+than just trying to minimize it in the first place.
+<a href="https://www.youtube.com/watch?v=9Htdhz6Op1I">Google's Stadia
+deep dive from Google I/O'19</a>, for example, has a whole lot
+of discussion about how the network is designed to minimize lag, with
+relatively little about any tricks for negating that lag.
+</p>
+
+<p>
+So, while I'm sure Google is hard at work on "negative
+latency", I wonder how much of that has made it to Stadia's launch so
+far. When people have complained about Stadia, they've complained
+about "ordinary" latency, rather than the kind of jitter that you can
+see in the examples above. I wouldn't be surprised if,
+at least for now, they are doing without the time travel.
 </p>
 
 <script src="scripts/latency_demo.js"></script>
