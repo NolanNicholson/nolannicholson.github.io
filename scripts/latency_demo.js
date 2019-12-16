@@ -48,6 +48,7 @@ function handleClick(e) {
 }
 for (var i = 0; i < demo_canvases.length; i++) {
     document.addEventListener('mousedown', handleClick);
+    document.addEventListener('touchstart', handleClick);
 }
 
 
