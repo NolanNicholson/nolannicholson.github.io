@@ -647,7 +647,7 @@ class GameEnvPredict extends GameEnvLatency {
         var lag_frames = Math.round(latency_ms / frame_ms);
 
         //predictive clicks
-        if (this.frames_since_last_input == this.frames_between_inputs) {
+        if (this.frames_since_last_input - lag_frames == this.frames_between_inputs) {
             super.click()
         }
 
