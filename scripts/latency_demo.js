@@ -233,7 +233,7 @@ class Bird {
     }
 
     update(fps) {
-        this.vy += BIRD_GRAVITY;
+        this.vy += (BIRD_GRAVITY * 60 / fps);
         if (this.vy > BIRD_MAX_VY) this.vy = BIRD_MAX_VY;
 
         this.y_pct += (this.vy * 60 / fps);
