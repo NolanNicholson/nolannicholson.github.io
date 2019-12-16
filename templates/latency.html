@@ -256,7 +256,7 @@ of hopping smoothly.
 </p>
 
 <p>
-Why do we get this upward "snap" instead of a simple reduction in lag?
+Why do we get this upward "snap"?
 There is one big difference between using Run-Ahead to manage the kind
 of latency that it was developed for (i.e., RetroArch games), and
 using it to manage our cloud gaming setup here.
@@ -314,10 +314,6 @@ game with 200 ms latency, that means you will have about 12 frames of
 latency, which will require that the server pre-emptively send you
 4,096 possible cases to select from. So you would need to do the
 equivalent of streaming 4,000 HD videos at once!
-And that is for a game with just
-one binary input; for a game where 32 players
-are playing, and they all have 20 different buttons they can press,
-the number of possible states gets ridiculous, fast.
 </p>
 
 <p>
@@ -348,7 +344,121 @@ frame, one for if they clicked at the previous frame, and so on.
     </span>
 </div>
 
-<!--TODO: Discuss Id Software patent -->
+<p>
+This is an extremely rough proof of concept, and making it really
+useful would take a lot more fine adjustments than I've made here,
+but it shows that you can begin to compensate for
+relatively high latencies with this technique. The downside, though,
+is that even with our shortcut we are still transmitting a large
+amount of "video" data: for 200 ms latency at 60 fps, we still need to
+send 12 versions of each frame.
+</p>
+
+<h4>What about multiple inputs?</h4>
+
+<p>
+All of the above is for a very simple game with just one binary input:
+either we are jumping, or we aren't. How would this work for a more
+typical game, where the user has a whole controller full of different
+inputs they can use?
+</p>
+
+<p>
+id Software <a
+    href="https://patents.google.com/patent/US10341678B2">has
+    patented</a> a possible way to do it: rather than sending every
+possible combination of all the different inputs, each of them gets
+associated with a "motion vector" describing how the video feed would
+change in response to that input. If a user has pressed multiple
+inputs, then the client can just add up the motion vectors.
+</p>
+
+<p>
+This could work - it seems especially well-suited to first-person 3D
+games - but adding up the motion vectors to produce the correct video
+is more work for the client (your phone or computer) to do, which
+starts to erode at the advantages of cloud gaming.
+</p>
+
+<h3>Predicting User Inputs</h3>
+
+<p>
+Finally, Google could simply try to predict the user's button presses
+and handle them beforehand. On one hand, if any group in the world has
+the machine learning chops to predict exactly how people would play a
+video game, it is probably Google. But on the other hand, this is a
+uniquely punishing problem.
+</p>
+
+<p>
+Imagine you have a self-driving car: you tell the computer a
+destination, you flip the switch, and the
+car's computer begins making (and executing on) predictions for how
+you would drive. The car might occasionally behave differently than
+you would, but disagreement is no problem as long as the car behaves
+"normally" and ends up in the right place.
+</p>
+
+<p>
+Now, imagine that you and the computer are both trying to drive at the
+same time, and the car is constantly juggling between your inputs and
+the computer's. Most of the time, you will both be doing the same
+things. But occasionally, you and the computer will disagree on little
+details, like
+the exact timing and style of your movements. When that happens, the
+car will likely get the computer's input first (computers are fast!)
+and begin acting on it, but it will then switch a few milliseconds
+later to your input (you're the one in charge!) The result: every
+time you disagree, the car will jitter a little bit.
+</p>
+
+<p>
+For a (horrible) example, here is a version where the server predicts
+that if your last two hops were 300 ms apart, then you will hop again
+300 ms later:
+</p>
+
+<div class="game-container">
+    <canvas class="demo-canvas inactive-demo"></canvas>
+    <div class="score-pane">
+        <span class="score">0</span> 🐥<br>
+        <span class="hiscore">0</span> 👑
+    </div>
+</div>
+<div class="latency-pane">
+    <span class="latency-info">
+        Added Latency:<br>
+        <span class="latency-indicator"></span>
+    </span>
+    <span class="latency-input-container">
+        <input type="range" min="0" max="500" value="200"
+        class="latency-input">
+    </span>
+</div>
+
+<p>
+One other interesting option would be to combine input
+prediction with the "speculative video" technique we explored above.
+If you can predict that a
+user's input is 99.999% likely to be one of 5 cases, then you only
+have 5 possible frames of video to send over, drastically
+reducing the amount of data you have to send. In the cases where the
+inputs can't be predicted, or the prediction is wrong, you would have
+some latency or jitter, but most of the time it would be great.
+</p>
+
+<h3>So now what?</h3>
+
+<p>
+We've seen a couple of techniques that people have speculated might be
+used to fight latency in cloud gaming. They are not without their
+drawbacks: some help manage the latency but add a lot of computing and
+networking cost, and some create a gameplay experience even worse than the
+latency itself was.
+</p>
+
+<p>
+</p>
 
 <script src="scripts/latency_demo.js"></script>
 <link rel="stylesheet" type="text/css" href="styles/latency_demo.css">

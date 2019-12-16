@@ -559,15 +559,15 @@ class GameEnvSpeculative extends GameEnvLatency {
         //but don't send a video packet yet -
         //instead, save this state packet as the reference
         //for generating speculative packets
-        super.update(false);
         this.frames_since_input++;
+        super.update(false);
         var reference_packet = this.save_state();
 
         //Determine number of frames of latency to counteract
         var frame_ms = (Date.now() - this.last_recorded_time);
         this.last_recorded_time = Date.now()
         var latency_ms = this.latency_input.value;
-        var lag_frames = Math.round(latency_ms / frame_ms);
+        var lag_frames = Math.ceil(latency_ms / frame_ms);
 
         //Null packet: if there were no inputs given recently
         for (var i = 0; i < lag_frames; i++) {
@@ -625,6 +625,37 @@ class GameEnvSpeculative extends GameEnvLatency {
     }
 }
 
+class GameEnvPredict extends GameEnvLatency {
+    constructor(cnv, latency_input) {
+        super(cnv, latency_input);
+        this.last_recorded_time = Date.now()
+        this.frames_since_last_input = -1;
+        this.frames_between_inputs = -1;
+    }
+
+    click() {
+        super.click();
+        this.frames_between_inputs = this.frames_since_last_input;
+        this.frames_since_last_input = 0;
+    }
+
+    update() {
+        //Determine number of frames of latency to counteract
+        var frame_ms = (Date.now() - this.last_recorded_time);
+        this.last_recorded_time = Date.now()
+        var latency_ms = this.latency_input.value;
+        var lag_frames = Math.round(latency_ms / frame_ms);
+
+        //predictive clicks
+        if (this.frames_since_last_input == this.frames_between_inputs) {
+            super.click()
+        }
+
+        super.update();
+        this.frames_since_last_input++;
+    }
+}
+
 
 var game_envs = [];
 for (var i = 0; i < demo_canvases.length; i++) {
@@ -646,6 +677,10 @@ for (var i = 0; i < demo_canvases.length; i++) {
             break;
         case 3:
             var env = new GameEnvSpeculative(
+                cnv, latency_inputs[i-1]);
+            break;
+        case 4:
+            var env = new GameEnvPredict(
                 cnv, latency_inputs[i-1]);
             break;
     }
