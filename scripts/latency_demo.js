@@ -34,6 +34,7 @@ function handleClick(e) {
                 elem.classList.add('active-demo');
                 elem.classList.remove('inactive-demo');
                 env.active = true;
+                env.last_recorded_time = Date.now();
                 env.loop();
             }
         } else {
@@ -198,10 +199,10 @@ class PipeQueue {
             this.scroll_speed, pipe_x, pipe_size, is_ceiling));
     }
 
-    update() {
+    update(fps) {
         //update the pipes
         this.pipes.forEach(function(p) {
-            p.x_pct -= p.scroll_speed;
+            p.x_pct -= p.scroll_speed * (60 / fps);
         });
 
         //spawn a new pipe if needed
@@ -231,11 +232,11 @@ class Bird {
         this.vy = BIRD_HOP_VY;
     }
 
-    update() {
+    update(fps) {
         this.vy += BIRD_GRAVITY;
         if (this.vy > BIRD_MAX_VY) this.vy = BIRD_MAX_VY;
 
-        this.y_pct += this.vy;
+        this.y_pct += (this.vy * 60 / fps);
         this.angle = this.vy / 4 * Math.PI / 8;
     }
 }
@@ -248,6 +249,7 @@ class GameEnvironment {
         this.ctx = cnv.getContext("2d");
         this.active = false;
         this.hiscore = 0;
+        this.last_recorded_time = Date.now();
 
         //game variables
         this.scroll_speed = 1;
@@ -296,9 +298,14 @@ class GameEnvironment {
     }
 
     update() {
+        //TODO: update for non-60Hz displays
+        var frame_ms = (Date.now() - this.last_recorded_time);
+        var fps = 1000 / frame_ms;
+        this.last_recorded_time = Date.now();
+
         //update objects
-        this.pipe_queue.update();
-        this.bird.update();
+        this.pipe_queue.update(fps);
+        this.bird.update(fps);
 
         this.collided = this.collisionCheck();
         var self = this;
