@@ -430,12 +430,9 @@ class GameEnvironment {
             if (!this.collided) {
                 this.update();
             }
-            this.render();
+            window.setTimeout(this.loop.bind(this), 1000 / 60);
         }
-
-        if (this.active) {
-            window.requestAnimationFrame(this.loop.bind(this));
-        }
+        window.requestAnimationFrame(this.render.bind(this));
     }
 }
 
