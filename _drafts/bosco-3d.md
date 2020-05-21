@@ -8,12 +8,12 @@ thing_url: https://nolannicholson.com/bosco-3d
 class="article-banner">
 </a>
 
-I made a 3-D version of the 1981 arcade game Bosconian. Go play it
-[here](https://nolannicholson.com/bosco-3d)!
+I made a 3-D version of the 1981 arcade game Bosconian. You can play it
+[here](https://nolannicholson.com/bosco-3d).
 
 # Backstory
 
-So when I was, like, ten years old, my parents bought me one of these things
+When I was ten years old or so, my parents bought me one of these things
 from Bed Bath & Beyond:
 
 [![Image: Jakks Namco Plug-and-Play Joystick
