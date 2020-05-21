@@ -1,9 +1,9 @@
 ---
+title: Conway's Game of Life (in Vanilla JavaScript)
 demo_url: /demos/game-of-life.html
 redirect_from: /gameoflife.html
 ---
 
-## Conway's Game of Life (in Vanilla JavaScript)
 <p style="width: 100%; background-color: #ddd; text-align: center;">
 <a href="{{ page.demo_url }}">
 <img src="/assets/img/gol.png" width="300px">

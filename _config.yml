@@ -1,10 +1,17 @@
+collections:
+  demos:
+    output: true
+
 defaults:
+  - scope:
+      path: ""
+      type: "posts"
+    values:
+      layout: "post"
   - scope:
       path: ""
     values:
       layout: "default"
-collections:
-  demos:
-    output: true
+
 plugins:
   - jekyll-redirect-from
