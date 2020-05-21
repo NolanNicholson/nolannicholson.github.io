@@ -75,7 +75,7 @@ function main() {
     //Load model
     const koi_obj_iframe = document.getElementById("koi_obj");
 
-    fetch("./koi.obj")
+    fetch("/assets/obj/koi.obj")
     .then(response => response.text())
     .then((koi_obj_string) => {
 

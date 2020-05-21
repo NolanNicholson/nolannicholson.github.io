@@ -1,7 +1,7 @@
-{% extends "base.html" %}
-{% block title %}Negative Latency{% endblock %}
-{% block page_content %}
-
+---
+title: Exploring "Negative Latency"
+redirect_from: /latency.html
+---
 <h2>Exploring "Negative Latency"</h2>
 
 <p>
@@ -116,7 +116,7 @@ somewhere else. Your device records your inputs and sends them to the
 game server, and the game server sends you back your video:
 </p>
 
-<img class="figure" src="images/latency/client_server.png"></img>
+<img class="figure" src="/assets/img/latency/client_server.png"></img>
 
 <p>
 The benefit of this is that the game server
@@ -143,7 +143,7 @@ to the server, and one for the video data to travel back.
 Putting it all together, our setup will look like this:
 </p>
 
-<img class="figure" src="images/latency/client_server_2.png"></img>
+<img class="figure" src="/assets/img/latency/client_server_2.png"></img>
 
 <p>
 And here is the result:
@@ -487,7 +487,5 @@ see in the examples above. I wouldn't be surprised if,
 at least for now, they are doing without the time travel.
 </p>
 
-<script src="scripts/latency_demo.js"></script>
-<link rel="stylesheet" type="text/css" href="styles/latency_demo.css">
-
-{% endblock %}
+<script src="/assets/js/latency_demo.js"></script>
+<link rel="stylesheet" type="text/css" href="/assets/css/latency_demo.css">

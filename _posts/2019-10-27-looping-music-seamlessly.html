@@ -1,12 +1,8 @@
-{% extends "base.html" %}
-{% block title %}Looping Music Seamlessly{% endblock %}
-
-{% block page_content %}
-
-<h2>Looping Music Seamlessly</h2>
-
+---
+redirect_from: /looper.html
+---
 <p>
-<img src="images/looper/headerbanner.png" alt="Header banner"
+<img src="/assets/img/looper/headerbanner.png" alt="Header banner"
     style="width: 100%">
 </p>
 
@@ -179,7 +175,7 @@ data from one "frame" of a music track:
 </p>
 
 <p>
-<img class="figure" src="images/looper/pcm.png" alt="Raw PCM graph">
+<img class="figure" src="/assets/img/looper/pcm.png" alt="Raw PCM graph">
 </p>
 
 <p>
@@ -201,7 +197,7 @@ When you think of sheet music, you think of something like this:
 
 <p>
 <img class="figure"
-src="images/looper/sheetmusic.png" alt="Super Mario Bros Sheet Music">
+src="/assets/img/looper/sheetmusic.png" alt="Super Mario Bros Sheet Music">
 (Source: <a href="http://www.mariopiano.com/mario-sheet-music-overworld-main-theme.html">Mario Piano</a>)
 </p>
 
@@ -240,7 +236,7 @@ high-frequency noise we won't use):
 </p>
 
 <p>
-<img class="figure" src="images/looper/fourier_frame.png"
+<img class="figure" src="/assets/img/looper/fourier_frame.png"
     alt="One frame after Fourier transform">
 </p>
 
@@ -255,7 +251,7 @@ over time, we get something like this...
 </p>
 
 <p>
-<img class="figure" src="images/looper/fourier_sheet.png"
+<img class="figure" src="/assets/img/looper/fourier_sheet.png"
     alt="Many frames after Fourier transform">
 </p>
 
@@ -270,7 +266,7 @@ the highest amplitude:
 </p>
 
 <p>
-<img class="figure" src="images/looper/fourier_dominant.png"
+<img class="figure" src="/assets/img/looper/fourier_dominant.png"
     alt="Dominant frequency for each frame">
 </p>
 
@@ -315,7 +311,18 @@ to get as good a match as possible. The "check" in this case uses
 NumPy's correlation coefficient function:
 </p>
 
-{{ code_snippet('loop.py', 81, 90) | safe }}
+{% highlight python %}
+def sig_corr(self, s1, s2, comp_length):
+    """Calculates the auto-correlation of the track (as compressed into
+    max_freq) with itself, based on sub-samples starting at frames
+    s1 and s2, each comp_length frames long."""
+
+    # np.corrcoef returns an array of coefficients - 
+    # the simple 'R' value is at row 1, col 0
+    return np.corrcoef(
+            self.max_freq[s1:s1+comp_length],
+            self.max_freq[s2:s2+comp_length])[1, 0]
+{% endhighlight %}
 
 <p>
 The walking itself happens mostly across possible "end" windows: beginning
@@ -325,7 +332,22 @@ values of the "start" window, just in case the looping portion
 actually begins late in the song.
 </p>
 
-{{ code_snippet('loop.py', 110, 123) | safe }}
+{% highlight python %}
+max_corr = 0
+best_start = None
+best_end = None
+
+for start in range(200, len(self.max_freq) - test_len,
+        int(len(self.max_freq) / 10)):
+    for end in range(start + 500, len(self.max_freq) - test_len):
+        sc = self.sig_corr(start, end, test_len)
+        if sc > max_corr:
+            best_start = start
+            best_end = end
+            max_corr = sc
+
+return (best_start, best_end, max_corr)
+{% endhighlight %}
 
 <p>
 So how does it work out?
@@ -333,7 +355,7 @@ For the main theme to <i>Super Mario Bros.</i>, we find an excellent match:
 </p>
 
 <p>
-<img class="figure" src="images/looper/loop_comparison.png"
+<img class="figure" src="/assets/img/looper/loop_comparison.png"
     alt="Comparison of the music with itself later on">
 </p>
 
@@ -346,7 +368,17 @@ a playback library, out123, that makes playback as easy as iterating
 through the frames:
 </p>
 
-{{ code_snippet('loop.py', 142, 150) | safe }}
+{% highlight python %}
+i = 0
+try:
+    while True:
+        out.play(self.frames[i])
+        i += 1
+        if i == loop_offset:
+            i = start_offset
+except KeyboardInterrupt:
+    print() # so that the program ends on a newline
+{% endhighlight %}
 
 <p>
 This will automatically play the file until it hits the looping point,
@@ -388,5 +420,3 @@ It couldn't find a good loop point.
 <p>
 Some songs weren't meant to go on forever, I guess.
 </p>
-
-{% endblock %}

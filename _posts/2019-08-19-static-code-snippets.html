@@ -1,7 +1,6 @@
-{% extends "base.html" %}
-{% block title %}Code Snippets - Nolan Nicholson{% endblock %}
-
-{% block page_content %}
+---
+title: Static Code Snippets
+---
     <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
 
     <h2>Rendering Code Snippets on a Static Website</h2>
@@ -68,7 +67,5 @@ std::cout &lt;&lt; "Hello World" &lt;&lt; std::endl;
     like code inclusion and highlighting (as well as things like using the same header and
     footer across different pages) by using a templating engine (or some other tool that
     assembles the HTML for you.) That is the subject of
-    <a href="pagerendering.html">this page</a>.
+    <a href="{{ page.next.url }}">this page</a>.
     </p>
-
-{% endblock %}

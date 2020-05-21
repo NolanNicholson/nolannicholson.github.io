@@ -1,97 +1,27 @@
-<!DOCTYPE html>
-<html>
+---
+layout: default
+title: Home
+---
 
-<head>
-    <!-- Global site tag (gtag.js) - Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-146424119-1"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
+<p>
+Hello! I'm Nolan, a software developer. I work for Everi Games, at a casino gaming studio in Reno, NV.
+</p>
 
-        gtag('config', 'UA-146424119-1');
-    </script>
+<p>
+I like computer programming, computer graphics, reading, and languages - particularly Chinese and Japanese.
+</p>
 
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Home - Nolan Nicholson</title>
-    <link rel="stylesheet" type="text/css" href="styles/highlighting.css">
-    <link rel='stylesheet' type='text/css' href='https://fonts.googleapis.com/css?family=Roboto+Slab:400,700'>
-    <link rel="stylesheet" type="text/css" href="styles/main.css">
-</head>
+<h2>Posts</h2>
 
-<body>
-    <div id='name-banner'>
-        <h1 class='name'>
-            <a href="index.html">Nolan Nicholson</a>
-            
-            <!--Code for adding a spinning cube to the header-->
-            <div id="headercanvas-holder">
-                <canvas id="headercanvas"></canvas>
-            </div>
-            <script src="scripts/libraries/gl-matrix.js"></script>
-            <script src="scripts/headercube.js"></script>
-            <!--end spinning cube code-->
-        </h1>
-    </div>
-    
-
-    <p class="grouped-links">
-    <a href='https://www.linkedin.com/in/nolann/'>LinkedIn</a> |
-    <a href='https://github.com/NolanNicholson/'>GitHub</a>
-    </p>
-      
-    <p>
-    Hello! I'm Nolan, a software developer.
-    I work for Everi, at a casino gaming studio in Reno, NV.
-    </p>
-
-    <p>
-    My hobbies include computer programming, computer graphics, reading,
-    and foreign languages - particularly Chinese and Japanese. (English is
-    my first.)
-    </p>
-
-    <br><hr>
-
-    <p>
-    <ul>
-        <li>
-            2020-04-12 - <a href="stockblaster/index.html">Game: STOCKBLASTER</a>
-        </li>
-        <li>
-            2019-12-16 - <a href="latency.html">Exploring "Negative Latency"</a>
-        </li>
-        <li>
-            2019-11-10 - <a href="clock.html">Desktop Clock</a>
-        </li>
-        <li>
-            2019-10-27 - <a href="looper.html">Looping Music Seamlessly</a>
-        </li>
-        <li>
-            2019-09-29 - <a href="gameoflife.html">Conway's Game of Life</a>
-            | <a href="gameoflife_about.html">About</a>
-        </li>
-        <li>
-            2019-08-26 - <a href="pagerendering.html">Static Website Compilation</a>
-        </li>
-        <li>
-            2019-08-19 - <a href="codesnippets.html">Static Code Snippets</a>
-        </li>
-        <li>
-            2019-03-30 - <a href="koipond.html">A Pond of Koi</a>
-        </li>
-        <li>
-            2019-03-19 - <a href="animation.html">Animation Test</a>
-        </li>
-        <li>
-            2019-03-17 - <a href="fullscreen.html">Fullscreen App Test</a>
-        </li>
-    </ul>
-    </p>
-
-
-    
-
-</body>
-</html>
+<table>
+    {% for post in site.posts %}
+    <tr>
+        <td>
+            {{ post.date | date_to_string }} - 
+        </td>
+        <td>
+            <a href="{{ post.url }}">{{ post.title }}</a>
+        </td>
+    </tr>
+    {% endfor %}
+</table>

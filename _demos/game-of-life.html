@@ -1,7 +1,8 @@
-{% extends "base.html" %}
-{% block title %}Game of Life - Nolan Nicholson{% endblock %}
-
-{% block page_content %}
+---
+layout: default
+title: Game of Life
+post_url: /2019/09/29/game-of-life.html
+---
 <h2> Conway's Game of Life</h1>
 
 <p>
@@ -15,7 +16,7 @@ or dead.
 
 <p>
 To read more on how this was implemented, click
-<a href="gameoflife_about.html">here</a>.
+<a href="{{ page.post_url }}">here</a>.
 </p>
 
 <p>
@@ -26,9 +27,7 @@ To read more on how this was implemented, click
 </p>
 
 <table id="gol-table"></table>
-<script src="scripts/gameoflife.js"></script>
-<link rel="stylesheet" type="text/css" href="styles/gameoflife.css">
+<script src="/assets/js/gameoflife.js"></script>
+<link rel="stylesheet" type="text/css" href="/assets/css/gameoflife.css">
 
 <br />
-    
-{% endblock %}
