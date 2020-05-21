@@ -1,11 +1,11 @@
 ---
-title: Conway's Game of Life (in Vanilla JavaScript)
-demo_url: /demos/game-of-life.html
+title: Conway's Life, in Javascript
+thing_url: /demos/game-of-life.html
 redirect_from: /gameoflife.html
 ---
 
 <p style="width: 100%; background-color: #ddd; text-align: center;">
-<a href="{{ page.demo_url }}">
+<a href="{{ page.thing_url }}">
 <img src="/assets/img/gol.png" width="300px">
 </a>
 </p>
@@ -14,7 +14,7 @@ I've been learning more about JavaScript and
 <a href="https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model/Introduction">the DOM</a> in particular,
 and I wanted to try out something to cement what I'd learned. To that end,
 I've created 
-<a href="{{ page.demo_url }}">
+<a href="{{ page.thing_url }}">
     an implementation of Conway's Game of Life</a>
 using nothing but vanilla JavaScript and CSS.
 
