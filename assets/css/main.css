@@ -5,7 +5,6 @@ body {
     margin-right: 1em;
     font-family: sans-serif;
     font-weight: normal;
-    font-size: 1.2em;
     color: #333333;
     -webkit-text-size-adjust: 100%;
 }
@@ -14,6 +13,7 @@ body {
     body {
         margin-left: 5em;
         margin-right: 5em;
+        font-size: 1.2em;
         max-width: 50em;
     }
 }
@@ -100,10 +100,8 @@ h3 { font-size: 1.0em; }
     height: 1.5em;
 }
 
-@media (min-width: 768px) {
-    #headercanvas-holder {
-        display: inline-block;
-    }
+#headercanvas-holder {
+    display: inline-block;
 }
 
 .figure {
